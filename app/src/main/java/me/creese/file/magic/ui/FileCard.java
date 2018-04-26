@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import me.creese.file.magic.FileCore;
 import me.creese.file.magic.P;
 import me.creese.file.magic.R;
 
@@ -16,19 +17,22 @@ import me.creese.file.magic.R;
  */
 
 public class FileCard extends CardView {
+    private final FileCore fileCore;
     private TextView textName;
+    private ImageView icon;
+    private boolean isDir;
 
-    public FileCard(@NonNull Context context) {
+    public FileCard(@NonNull Context context, FileCore fileCore) {
         super(context);
-
+        this.fileCore = fileCore;
         setParams();
         addViews();
     }
 
     private void addViews() {
-        ImageView icon = new ImageView(getContext());
+        icon = new ImageView(getContext());
 
-        icon.setImageResource(R.drawable.ic_folder_white_36dp);
+
 
         LinearLayout layout = new LinearLayout(getContext());
         layout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
@@ -38,6 +42,10 @@ public class FileCard extends CardView {
 
         layout.addView(icon);
         layout.addView(textName);
+
+        ((LinearLayout.LayoutParams) icon.getLayoutParams()).leftMargin = P.getPixelFromDP(10);
+        ((LinearLayout.LayoutParams) icon.getLayoutParams()).topMargin = P.getPixelFromDP(10);
+        ((LinearLayout.LayoutParams) icon.getLayoutParams()).bottomMargin = P.getPixelFromDP(10);
 
         ((LinearLayout.LayoutParams) textName.getLayoutParams()).leftMargin = P.getPixelFromDP(15);
         textName.setTextColor(0xffff0000);
@@ -49,9 +57,23 @@ public class FileCard extends CardView {
         addView(layout);
 
     }
+    private void setIcon(int iconId) {
+        icon.setImageResource(iconId);
+    }
 
     public void setName(String name) {
         textName.setText(name);
+    }
+
+
+    public void setDir(boolean dir) {
+        isDir = dir;
+        if(isDir) {
+            setIcon(R.drawable.ic_folder_white_36dp);
+        }
+        else {
+            setIcon(R.drawable.file);
+        }
     }
 
     private void setParams() {
@@ -59,7 +81,12 @@ public class FileCard extends CardView {
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         ((LinearLayout.LayoutParams) getLayoutParams()).setMargins(P.getPixelFromDP(10),
                 P.getPixelFromDP(10),P.getPixelFromDP(10),0);
-        setRadius(P.getPixelFromDP(10));
+        setRadius(P.getPixelFromDP(7));
 
+
+        setOnClickListener(l -> {
+            if(isDir)
+            fileCore.openDir(textName.getText().toString());
+        });
     }
 }

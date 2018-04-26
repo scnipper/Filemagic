@@ -18,6 +18,7 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
 
 
     private final ArrayList<ModelFiles> items;
+    private FileCore fileCore;
 
     public AdapterFiles() {
         items = new ArrayList<>();
@@ -29,7 +30,7 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
     @NonNull
     @Override
     public AdapterFiles.RecycleHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new RecycleHolder(new FileCard(parent.getContext()));
+        return new RecycleHolder(new FileCard(parent.getContext(),fileCore));
     }
 
     @Override
@@ -42,7 +43,16 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
         return items.size();
     }
 
+    public void clear() {
+        if(items.size() > 0) {
+            items.clear();
+            notifyDataSetChanged();
+        }
+    }
 
+    public void setFileCore(FileCore fileCore) {
+        this.fileCore = fileCore;
+    }
 
 
     public class RecycleHolder extends RecyclerView.ViewHolder {
@@ -58,6 +68,8 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
 
         public void bind(int position) {
             fileCard.setName(items.get(position).getName());
+            fileCard.setDir(items.get(position).isDir());
+
         }
     }
 }
