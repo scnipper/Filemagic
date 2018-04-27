@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">File magic</string>
+    <string name="app_name" translatable="false">File magic</string>
+    <string name="empty_folder">Empty folder</string>
+    <string name="no_permission_read">No permission</string>
 </resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="empty_folder">Пустая папка</string>
+    <string name="no_permission_read">Нет прав на чтение</string>
+</resources>
