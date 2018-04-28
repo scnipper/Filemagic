@@ -69,6 +69,9 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
         public void bind(int position) {
             fileCard.setName(items.get(position).getName());
             fileCard.setDir(items.get(position).isDir());
+            fileCard.setTextSize(items.get(position).getSize());
+            fileCard.setPerm(items.get(position).getPermissons());
+            fileCard.setDate(items.get(position).getDate());
 
         }
     }

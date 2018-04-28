@@ -2,4 +2,11 @@
     <string name="app_name" translatable="false">File magic</string>
     <string name="empty_folder">Empty folder</string>
     <string name="no_permission_read">No permission</string>
+    <string name="create">Создать</string>
+    <string name="file">Файл</string>
+    <string name="folder">Папка</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Отмена</string>
+    <string name="open_with">Открыть с помощью...</string>
+    <string-array name="items_create"><item>Файл</item><item>Папка</item></string-array>
 </resources>

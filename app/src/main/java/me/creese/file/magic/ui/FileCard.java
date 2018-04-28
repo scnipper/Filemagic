@@ -1,12 +1,17 @@
 package me.creese.file.magic.ui;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import java.io.File;
 
 import me.creese.file.magic.FileCore;
 import me.creese.file.magic.P;
@@ -21,6 +26,9 @@ public class FileCard extends CardView {
     private TextView textName;
     private ImageView icon;
     private boolean isDir;
+    private TextView textSize;
+    private TextView textPerm;
+    private TextView textDate;
 
     public FileCard(@NonNull Context context, FileCore fileCore) {
         super(context);
@@ -38,17 +46,55 @@ public class FileCard extends CardView {
         layout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         layout.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout horLayout = new LinearLayout(getContext());
+        horLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        horLayout.setOrientation(LinearLayout.HORIZONTAL);
+
+        LinearLayout verLayout = new LinearLayout(getContext());
+        layout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        verLayout.setOrientation(LinearLayout.VERTICAL);
         textName = new TextView(getContext());
+        textName.setTextColor(0xffCFD6ED);
+
+        textSize = new TextView(getContext());
+        textSize.setTextColor(0xffFCB2CE);
+        textSize.setTextSize(10);
+        textSize.setLayoutParams(new LinearLayout.LayoutParams(P.getPixelFromDP(120), ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        textPerm = new TextView(getContext());
+        textPerm.setTextColor(0xffFCB2CE);
+        textPerm.setTextSize(10);
+
+        textDate = new TextView(getContext());
+        textDate.setTextColor(0xffFCB2CE);
+        textDate.setTextSize(10);
+
+        horLayout.addView(textSize);
+        horLayout.addView(textPerm);
+        horLayout.addView(textDate);
+
+
+        verLayout.addView(textName);
+        verLayout.addView(horLayout);
 
         layout.addView(icon);
-        layout.addView(textName);
+        layout.addView(verLayout);
+
 
         ((LinearLayout.LayoutParams) icon.getLayoutParams()).leftMargin = P.getPixelFromDP(10);
         ((LinearLayout.LayoutParams) icon.getLayoutParams()).topMargin = P.getPixelFromDP(10);
         ((LinearLayout.LayoutParams) icon.getLayoutParams()).bottomMargin = P.getPixelFromDP(10);
 
-        ((LinearLayout.LayoutParams) textName.getLayoutParams()).leftMargin = P.getPixelFromDP(15);
-        textName.setTextColor(0xffff0000);
+        ((LinearLayout.LayoutParams) verLayout.getLayoutParams()).leftMargin = P.getPixelFromDP(15);
+        ((LinearLayout.LayoutParams) textSize.getLayoutParams()).topMargin = P.getPixelFromDP(17);
+        ((LinearLayout.LayoutParams) textPerm.getLayoutParams()).topMargin = P.getPixelFromDP(17);
+        ((LinearLayout.LayoutParams) textDate.getLayoutParams()).topMargin = P.getPixelFromDP(17);
+        ((LinearLayout.LayoutParams) textDate.getLayoutParams()).leftMargin = P.getPixelFromDP(50);
+
+
 
 
 
@@ -76,6 +122,8 @@ public class FileCard extends CardView {
         }
     }
 
+
+
     private void setParams() {
         setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -87,6 +135,28 @@ public class FileCard extends CardView {
         setOnClickListener(l -> {
             if(isDir)
             fileCore.openDir(textName.getText().toString());
+            else {
+
+
+                Uri fileUri = Uri.fromFile(new File(fileCore.getCurrentDir().toString()+textName.getText()));
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.setDataAndType(fileUri, "text/*");
+                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                fileCore.getActivity().startActivity(intent);
+
+            }
         });
+    }
+
+    public void setTextSize(String textSize) {
+        this.textSize.setText(textSize);
+    }
+
+    public void setPerm(String perm) {
+        textPerm.setText(perm);
+    }
+    public void setDate(String date) {
+        textDate.setText(date);
     }
 }

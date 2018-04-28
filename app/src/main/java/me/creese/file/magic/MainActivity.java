@@ -1,7 +1,11 @@
 package me.creese.file.magic;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -10,6 +14,9 @@ import android.text.method.ScrollingMovementMethod;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -29,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private FrameLayout emptyFolder;
     private FrameLayout frameLayout;
+    private AlertDialog dialogCreate;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @SuppressLint("ResourceType")
     private void createViews() {
         recyclerView = new RecyclerView(this);
         adapter = new AdapterFiles();
@@ -95,8 +105,67 @@ public class MainActivity extends AppCompatActivity {
 
 
         FloatingActionButton fab = new FloatingActionButton(this);
-        fab.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        fab.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
         fab.setImageResource(R.drawable.ic_add_white_24dp);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        EditText nameElement = new EditText(this);
+
+        nameElement.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        nameElement.setLines(1);
+
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if(nameElement.getId() == 111) {
+                    fileCore.createFile(nameElement.getText().toString());
+                }
+                else {
+                    fileCore.createFolder(nameElement.getText().toString());
+                }
+
+            }
+        }).setNegativeButton(R.string.cancel,null).setView(nameElement);
+
+        AlertDialog whichCreate = builder.create();
+
+
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.create)
+                .setItems(R.array.items_create, (dialog, which) -> {
+                    if(which == 0) {
+                        whichCreate.setTitle(R.string.file);
+                        nameElement.setText(R.string.file);
+                        nameElement.setId(111);
+                    }
+                    else {
+                        whichCreate.setTitle(R.string.folder);
+                        nameElement.setText(R.string.folder);
+                        nameElement.setId(222);
+                    }
+                    nameElement.selectAll();
+
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                    whichCreate.show();
+
+                });
+
+
+        dialogCreate = builder.create();
+
+
+
+        AlertDialog fileOrFolderCreate = builder.create();
+
+
+        fab.setOnClickListener(l -> {
+
+            dialogCreate.show();
+        });
+
         ((FrameLayout.LayoutParams) fab.getLayoutParams()).gravity = Gravity.BOTTOM|Gravity.END;
         ((FrameLayout.LayoutParams) fab.getLayoutParams()).rightMargin = P.getPixelFromDP(16);
         ((FrameLayout.LayoutParams) fab.getLayoutParams()).bottomMargin = P.getPixelFromDP(16);

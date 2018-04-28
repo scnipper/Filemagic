@@ -2,4 +2,9 @@
 <resources>
     <string name="empty_folder">Пустая папка</string>
     <string name="no_permission_read">Нет прав на чтение</string>
+    <string name="create">Создать</string>
+    <string name="file">Файл</string>
+    <string name="folder">Папка</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Отмена</string>
 </resources>
