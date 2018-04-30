@@ -1,6 +1,7 @@
 package me.creese.file.magic;
 
 import android.annotation.SuppressLint;
+import android.os.Environment;
 import android.os.Parcelable;
 
 import java.io.File;
@@ -22,6 +23,7 @@ public class FileCore {
     private final Calendar dateFile;
     private StringBuilder currentDir;
     private LinkedList<Parcelable> statesRecycleView;
+    private boolean selectedMode;
 
 
     public FileCore(MainActivity mainActivity) {
@@ -64,17 +66,24 @@ public class FileCore {
 
     public void openRootDir() {
         currentDir.append("/");
-        activity.getTextDir().setText(currentDir.toString());
+
         ArrayList<File> list = getListFiles();
 
+        if (list == null) {
+            clearCurrentDir();
+            currentDir.append(Environment.getExternalStorageDirectory().getAbsolutePath());
+            list = getListFiles();
+        }
+        activity.getTextDir().setText(currentDir.toString());
         for (File listFile : list) {
             activity.getAdapter().addItem(new ModelFiles(listFile.getName(),
                     listFile.isDirectory(),
-                    getSize(listFile),getPermissions(listFile), getDate(listFile)));
+                    getSize(listFile), getPermissions(listFile), getDate(listFile)));
         }
 
 
     }
+
 
     private void openDir(String directory, boolean isNotAppend) {
         if (!isNotAppend)
@@ -98,7 +107,7 @@ public class FileCore {
         if (list != null) {
             for (File listFile : list) {
                 activity.getAdapter().addItem(new ModelFiles(listFile.getName(), listFile.isDirectory(),
-                        getSize(listFile), getPermissions(listFile),getDate(listFile)));
+                        getSize(listFile), getPermissions(listFile), getDate(listFile)));
             }
 
             if (isNotAppend)
@@ -178,19 +187,26 @@ public class FileCore {
         long size = sizeFile.length();
 
 
+        if (sizeFile.isDirectory()) {
 
-        if (sizeFile.isDirectory()) return "--";
+            int elem = 0;
+
+            if (sizeFile.list() != null)
+                elem = sizeFile.list().length;
+
+            return elem + " " + activity.getString(R.string.elements);
+        }
 
         if (size >= 0) {
 
             if (size > G_BYTES) {
-                return  String.format("%(.2f Gb", (float)size / G_BYTES);
+                return String.format("%(.2f Gb", (float) size / G_BYTES);
             }
             if (size > M_BYTES) {
-                return String.format("%(.2f Mb", (float)size / M_BYTES);
+                return String.format("%(.2f Mb", (float) size / M_BYTES);
             }
             if (size > K_BYTES) {
-                return String.format("%(.2f Kb", (float)size / K_BYTES);
+                return String.format("%(.2f Kb", (float) size / K_BYTES);
             }
             return size + " bytes";
         }
@@ -201,25 +217,33 @@ public class FileCore {
     private String getPermissions(File file) {
         String perm = "";
 
-        if(file.canRead()) perm+="r";
-        else perm+="-";
-        if(file.canWrite()) perm+="w";
-        else perm+="-";
-        if(file.canExecute()) perm+="x";
-        else perm+="-";
+        if (file.canRead()) perm += "r";
+        else perm += "-";
+        if (file.canWrite()) perm += "w";
+        else perm += "-";
+        if (file.canExecute()) perm += "x";
+        else perm += "-";
         return perm;
     }
 
     private String getDate(File fileData) {
         long date = fileData.lastModified();
-        if(date > 0) {
+        if (date > 0) {
             dateFile.setTimeInMillis(date);
-            return dateFile.get(Calendar.DAY_OF_MONTH) + "." + dateFile.get(Calendar.MONTH) + "." + dateFile.get(Calendar.YEAR);
-        }
-        else {
+            return String.format("%02d.%02d.%4d", dateFile.get(Calendar.DAY_OF_MONTH),
+                    dateFile.get(Calendar.MONTH), dateFile.get(Calendar.YEAR));
+        } else {
             return "--";
         }
 
 
+    }
+
+    public boolean isSelectedMode() {
+        return selectedMode;
+    }
+
+    public void startSelectedMode() {
+        selectedMode = true;
     }
 }

@@ -10,6 +10,8 @@ public class ModelFiles {
     private final String date;
     private String name;
     private boolean isDir;
+    private boolean selectedMode;
+    private boolean select;
 
     public ModelFiles(String name, boolean isDir, String size, String permissions, String date) {
         this.size = size;
@@ -37,5 +39,21 @@ public class ModelFiles {
 
     public boolean isDir() {
         return isDir;
+    }
+
+    public void setSelectedMode(boolean selectedMode) {
+        this.selectedMode = selectedMode;
+    }
+
+    public boolean isSelectedMode() {
+        return selectedMode;
+    }
+
+    public void setSelect(boolean select) {
+        this.select = select;
+    }
+
+    public boolean isSelect() {
+        return select;
     }
 }

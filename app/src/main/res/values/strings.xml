@@ -8,5 +8,23 @@
     <string name="ok">OK</string>
     <string name="cancel">Отмена</string>
     <string name="open_with">Открыть с помощью...</string>
-    <string-array name="items_create"><item>Файл</item><item>Папка</item></string-array>
+    <string name="elements">elements</string>
+    <string name="open_how">Открыть как</string>
+    <string-array name="items_create">
+        <item>Файл</item>
+        <item>Папка</item>
+    </string-array>
+    <string-array name="items_open_with">
+        <item>Текст</item>
+        <item>Аудио</item>
+        <item>Изображение</item>
+        <item>Видео</item>
+        <item>Другое</item>
+    </string-array>
+    <string name="title_activity_main2">Main2Activity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
 </resources>

@@ -7,4 +7,6 @@
     <string name="folder">Папка</string>
     <string name="ok">OK</string>
     <string name="cancel">Отмена</string>
+    <string name="elements">элементов</string>
+    <string name="open_how">Открыть как</string>
 </resources>

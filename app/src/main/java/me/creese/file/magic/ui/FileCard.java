@@ -7,6 +7,7 @@ import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -14,6 +15,8 @@ import android.widget.TextView;
 import java.io.File;
 
 import me.creese.file.magic.FileCore;
+import me.creese.file.magic.ModelFiles;
+import me.creese.file.magic.OpenWithHandler;
 import me.creese.file.magic.P;
 import me.creese.file.magic.R;
 
@@ -29,6 +32,11 @@ public class FileCard extends CardView {
     private TextView textSize;
     private TextView textPerm;
     private TextView textDate;
+    private boolean longClick;
+    private FrameLayout frameLayout;
+    private boolean select;
+    //private boolean selectedMode;
+    private ModelFiles model;
 
     public FileCard(@NonNull Context context, FileCore fileCore) {
         super(context);
@@ -39,6 +47,10 @@ public class FileCard extends CardView {
 
     private void addViews() {
         icon = new ImageView(getContext());
+
+        frameLayout = new FrameLayout(getContext());
+        frameLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
 
 
 
@@ -99,8 +111,8 @@ public class FileCard extends CardView {
 
 
 
-
-        addView(layout);
+        frameLayout.addView(layout);
+        addView(frameLayout);
 
     }
     private void setIcon(int iconId) {
@@ -125,28 +137,78 @@ public class FileCard extends CardView {
 
 
     private void setParams() {
+
         setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         ((LinearLayout.LayoutParams) getLayoutParams()).setMargins(P.getPixelFromDP(10),
                 P.getPixelFromDP(10),P.getPixelFromDP(10),0);
         setRadius(P.getPixelFromDP(7));
-
+        setPreventCornerOverlap(false);
 
         setOnClickListener(l -> {
+            if(longClick) {
+                longClick = false;
+                return;
+            }
+
+            if(model.isSelectedMode()) {
+                setSelect();
+                return;
+            }
+
+
+
+
+
+
+
+
             if(isDir)
             fileCore.openDir(textName.getText().toString());
             else {
 
+                fileCore.getActivity().showDialogOpenWith(what -> {
+                    Uri fileUri = Uri.fromFile(new File(fileCore.getCurrentDir().toString()+textName.getText()));
+                    Intent intent = new Intent();
+                    intent.setAction(Intent.ACTION_VIEW);
+                    intent.setDataAndType(fileUri, what.toString());
+                    intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                Uri fileUri = Uri.fromFile(new File(fileCore.getCurrentDir().toString()+textName.getText()));
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_VIEW);
-                intent.setDataAndType(fileUri, "text/*");
-                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                fileCore.getActivity().startActivity(intent);
+
+
+                    fileCore.getActivity().startActivity(intent);
+
+                });
+
+
 
             }
         });
+
+        setOnLongClickListener(l -> {
+            if(model.isSelectedMode() && model.isSelect()) return false;
+
+            longClick = true;
+
+            setSelect();
+
+
+            return false;
+        });
+    }
+
+    public void setSelect() {
+
+        if(select) {
+            deselect();
+            return;
+        }
+
+        model.setSelect(true);
+        select = true;
+        frameLayout.setBackgroundColor(0xff26746B);
+        fileCore.getActivity().getAdapter().setSelectedMode(true);
+
     }
 
     public void setTextSize(String textSize) {
@@ -158,5 +220,22 @@ public class FileCard extends CardView {
     }
     public void setDate(String date) {
         textDate.setText(date);
+    }
+
+    public void clear() {
+        frameLayout.setBackgroundColor(0);
+        select = false;
+    }
+
+    private void deselect() {
+        frameLayout.setBackgroundColor(0);
+        select = false;
+        model.setSelect(false);
+    }
+
+
+
+    public void setModel(ModelFiles model) {
+        this.model = model;
     }
 }

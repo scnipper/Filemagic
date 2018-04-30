@@ -5,8 +5,13 @@
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/primaryColor</item>
         <item name="colorPrimaryDark">@color/primaryDarkColor</item>
-  <!--      <item name="colorPrimaryLight">@color/primaryLightColor</item>
+        <!--      <item name="colorPrimaryLight">@color/primaryLightColor</item>
         <item name="colorPrimaryText">@color/primaryTextColor</item>-->
     </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
 
 </resources>

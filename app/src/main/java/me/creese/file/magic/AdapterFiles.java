@@ -19,6 +19,7 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
 
     private final ArrayList<ModelFiles> items;
     private FileCore fileCore;
+    private boolean slectedMode;
 
     public AdapterFiles() {
         items = new ArrayList<>();
@@ -54,6 +55,28 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
         this.fileCore = fileCore;
     }
 
+    public void setSelectedMode(boolean mode) {
+        if(!slectedMode) {
+            for (int i = 0; i < items.size(); i++) {
+                items.get(i).setSelectedMode(mode);
+            }
+            fileCore.getActivity().addIconsToToolbar();
+            slectedMode = true;
+        }
+    }
+
+    public void deleteSelected() {
+        for (int i = 0; i < items.size(); i++) {
+            if(items.get(i).isSelect()) {
+                notifyItemRemoved(i);
+                items.remove(i);
+                i--;
+            }
+        }
+
+
+    }
+
 
     public class RecycleHolder extends RecyclerView.ViewHolder {
 
@@ -67,11 +90,22 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
         }
 
         public void bind(int position) {
-            fileCard.setName(items.get(position).getName());
-            fileCard.setDir(items.get(position).isDir());
-            fileCard.setTextSize(items.get(position).getSize());
-            fileCard.setPerm(items.get(position).getPermissons());
-            fileCard.setDate(items.get(position).getDate());
+            ModelFiles modelFiles = items.get(position);
+
+            fileCard.setModel(modelFiles);
+
+            fileCard.clear();
+
+            fileCard.setName(modelFiles.getName());
+            fileCard.setDir(modelFiles.isDir());
+            fileCard.setTextSize(modelFiles.getSize());
+            fileCard.setPerm(modelFiles.getPermissons());
+            fileCard.setDate(modelFiles.getDate());
+
+            if(modelFiles.isSelect()) fileCard.setSelect();
+            //fileCard.setSelectedMode(items.get(position).isSelectedMode());
+
+
 
         }
     }
