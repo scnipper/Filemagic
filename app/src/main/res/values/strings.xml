@@ -14,6 +14,10 @@
         <item>Файл</item>
         <item>Папка</item>
     </string-array>
+    <string-array name="items_move_copy">
+        <item>Скопировать</item>
+        <item>Переместить</item>
+    </string-array>
     <string-array name="items_open_with">
         <item>Текст</item>
         <item>Аудио</item>
@@ -27,4 +31,11 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    <string name="what_do">Что сделать?</string>
+    <string name="copy_elem">Скопировать сюда?</string>
+    <string name="move_elem">Переместить сюда?</string>
+    <string name="no">Нет</string>
+    <string name="yes">Да</string>
+    <string name="rename">Переименовать</string>
+    <string name="no_permission">Нет разрешения!</string>
 </resources>

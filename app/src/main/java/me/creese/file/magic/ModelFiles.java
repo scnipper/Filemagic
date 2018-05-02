@@ -12,6 +12,7 @@ public class ModelFiles {
     private boolean isDir;
     private boolean selectedMode;
     private boolean select;
+    private boolean modeCopyAndMove;
 
     public ModelFiles(String name, boolean isDir, String size, String permissions, String date) {
         this.size = size;
@@ -55,5 +56,13 @@ public class ModelFiles {
 
     public boolean isSelect() {
         return select;
+    }
+
+    public void setModeCopyAndMove(boolean modeCopyAndMove) {
+        this.modeCopyAndMove = modeCopyAndMove;
+    }
+
+    public boolean isModeCopyAndMove() {
+        return modeCopyAndMove;
     }
 }

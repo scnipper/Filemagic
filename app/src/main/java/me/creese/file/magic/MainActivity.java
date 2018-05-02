@@ -1,6 +1,7 @@
 package me.creese.file.magic;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -25,6 +26,8 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.io.File;
+
 import me.creese.file.magic.views.DirView;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
@@ -32,6 +35,8 @@ import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final int GROUP_ACTIONS = 0;
+    public static final int GROUP_MOVE_COPY = 1;
     private LinearLayout layout;
     private AdapterFiles adapter;
     private FileCore fileCore;
@@ -44,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private FrameLayout frameLayout;
     private Toolbar toolbar;
+    private int whatDoFile;
 
 
     @Override
@@ -91,7 +97,11 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setTitle("");
 
         toolbar.setBackgroundColor(0xff008D7C);
-        
+
+        toolbar.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                P.getPixelFromDP(40)));
+
+
 
         layout.addView(toolbar);
 
@@ -185,8 +195,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     nameElement.selectAll();
 
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                    Dialogs.getInstanse().showKeyboard(this);
                     whichCreate.show();
 
                 });
@@ -195,7 +204,6 @@ public class MainActivity extends AppCompatActivity {
         dialogCreate = builder.create();
 
 
-        AlertDialog fileOrFolderCreate = builder.create();
 
 
         fab.setOnClickListener(l -> {
@@ -278,24 +286,46 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void addIconsToToolbar() {
-        toolbar.getMenu().add(0,11,0,"");
-        toolbar.getMenu().getItem(0).setShowAsAction(SHOW_AS_ACTION_ALWAYS);
-        toolbar.getMenu().getItem(0).setIcon(R.drawable.ic_delete_white_18dp);
+    public void addIconsToToolbar(int gId) {
+        toolbar.getMenu().setGroupVisible(gId,true);
 
+    }
+
+    public void hideToolbarIcon(int gId) {
+        toolbar.getMenu().setGroupVisible(gId,false);
     }
 
     @Override
     public void onBackPressed() {
-        if (fileCore.getCurrentDir().equals("/")) super.onBackPressed();
+        if (fileCore.getCurrentDir().equals(fileCore.getRootDir())) super.onBackPressed();
         else {
+            hideToolbarIcon(GROUP_ACTIONS);
             fileCore.backDir();
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        //getMenuInflater().inflate(R.menu.main2, menu);
+        menu.add(GROUP_ACTIONS,11,0,"")
+                .setIcon(R.drawable.ic_delete_white_18dp)
+                .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
+        menu.add(GROUP_ACTIONS,12,0,"")
+                .setIcon(R.drawable.ic_compare_arrows_white_18dp)
+                .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
+        menu.add(GROUP_ACTIONS,13,0,"")
+                .setIcon(R.drawable.ic_mode_edit_white_18dp)
+                .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
+
+        menu.add(GROUP_MOVE_COPY,21,0,"")
+                .setIcon(R.drawable.ic_close_white_18dp)
+                .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
+        menu.add(GROUP_MOVE_COPY,22,0,"")
+                .setIcon(R.drawable.ic_check_white_18dp)
+                .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
+
+
+        hideToolbarIcon(GROUP_MOVE_COPY);
+        hideToolbarIcon(GROUP_ACTIONS);
 
         return true;
     }
@@ -306,8 +336,75 @@ public class MainActivity extends AppCompatActivity {
 
         switch (id) {
             case 11:
-                adapter.deleteSelected();
+
+                adapter.saveSelectedFiles();
+                fileCore.deleteFiles(adapter.getSavedFiles());
+                hideToolbarIcon(GROUP_ACTIONS);
+                break;
+            case 12:
+                Dialogs.getInstanse().showDialogCopyAndMove(this, which -> {
+
+                    Integer w = (Integer) which;
+
+                    if(w == 0) {
+                        whatDoFile = R.string.copy_elem;
+                    }
+                    if(w == 1) {
+                        whatDoFile = R.string.move_elem;
+                    }
+                    hideToolbarIcon(GROUP_ACTIONS);
+                    adapter.setModeMoveAndCopy(true);
+                    adapter.saveSelectedFiles();
+
+                    addIconsToToolbar(GROUP_MOVE_COPY);
+                });
+                break;
+            case 13:
+
+                File fileRename = adapter.getSelectedFile();
+                String name = fileRename.getName();
+
+
+                Dialogs.getInstanse().showDialogRename(this, which -> {
+
+
+                    fileCore.renameFile(fileRename, (String) which);
+
+                    hideToolbarIcon(GROUP_ACTIONS);
+                    adapter.deselectAll();
+                },name);
+                break;
+            case 21:
+                hideToolbarIcon(GROUP_MOVE_COPY);
+                adapter.setModeMoveAndCopy(false);
+                break;
+            case 22:
+                //hideToolbarIcon(GROUP_MOVE_COPY);
+                Dialogs.getInstanse().showDialogSureCopyMove(this, which -> {
+                    Integer w = ((Integer) which);
+
+                    if(w == 1) {
+                        // do it
+
+                        fileCore.moveFile(adapter.getSavedFiles(),true);
+
+                        adapter.getSavedStates().clear();
+                    }
+                    if(w == 2) {
+                        fileCore.moveFile(adapter.getSavedFiles(),false);
+                    }
+                    hideToolbarIcon(GROUP_MOVE_COPY);
+                    adapter.setModeMoveAndCopy(false);
+                },whatDoFile);
+
+
         }
         return true;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Dialogs.getInstanse().destroy();
     }
 }

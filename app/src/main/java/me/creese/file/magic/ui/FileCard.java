@@ -3,8 +3,10 @@ package me.creese.file.magic.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.CardView;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -130,7 +132,7 @@ public class FileCard extends CardView {
             setIcon(R.drawable.ic_folder_white_36dp);
         }
         else {
-            setIcon(R.drawable.file);
+            setIcon(R.drawable.ic_insert_drive_file_white_36dp);
         }
     }
 
@@ -163,20 +165,34 @@ public class FileCard extends CardView {
 
 
 
-            if(isDir)
-            fileCore.openDir(textName.getText().toString());
-            else {
+            if(isDir) {
+                if(!model.isSelect())
+                fileCore.openDir(textName.getText().toString());
+            }
+            else if(!model.isModeCopyAndMove()){
 
                 fileCore.getActivity().showDialogOpenWith(what -> {
-                    Uri fileUri = Uri.fromFile(new File(fileCore.getCurrentDir().toString()+textName.getText()));
                     Intent intent = new Intent();
-                    intent.setAction(Intent.ACTION_VIEW);
-                    intent.setDataAndType(fileUri, what.toString());
-                    intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+
+                        Uri contentUri = FileProvider.getUriForFile(getContext(),
+                                fileCore.getActivity().getApplicationContext().getPackageName() + ".provider",
+                                new File(fileCore.getCurrentDir().toString() + textName.getText()));
+                        Intent openFileIntent = new Intent(Intent.ACTION_VIEW);
+                        openFileIntent.setDataAndTypeAndNormalize(contentUri, what.toString());
+                        openFileIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        fileCore.getActivity().startActivity(openFileIntent);
+                    } else {
+
+                        Uri fileUri = Uri.fromFile(new File(fileCore.getCurrentDir().toString() + textName.getText()));
+
+                        intent.setAction(Intent.ACTION_VIEW);
+                        intent.setDataAndType(fileUri, what.toString());
+                        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        fileCore.getActivity().startActivity(intent);
+                    }
 
 
-
-                    fileCore.getActivity().startActivity(intent);
 
                 });
 
@@ -186,7 +202,7 @@ public class FileCard extends CardView {
         });
 
         setOnLongClickListener(l -> {
-            if(model.isSelectedMode() && model.isSelect()) return false;
+            if((model.isSelectedMode() && model.isSelect()) || model.isModeCopyAndMove()) return false;
 
             longClick = true;
 
@@ -207,7 +223,7 @@ public class FileCard extends CardView {
         model.setSelect(true);
         select = true;
         frameLayout.setBackgroundColor(0xff26746B);
-        fileCore.getActivity().getAdapter().setSelectedMode(true);
+        fileCore.getActivity().getAdapter().setSelectedMode();
 
     }
 
@@ -228,9 +244,11 @@ public class FileCard extends CardView {
     }
 
     private void deselect() {
+
         frameLayout.setBackgroundColor(0);
         select = false;
         model.setSelect(false);
+        fileCore.getActivity().getAdapter().checkIsEmptySelect();
     }
 
 

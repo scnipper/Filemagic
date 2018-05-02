@@ -3,9 +3,14 @@ package me.creese.file.magic;
 import android.annotation.SuppressLint;
 import android.os.Environment;
 import android.os.Parcelable;
+import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -24,6 +29,8 @@ public class FileCore {
     private StringBuilder currentDir;
     private LinkedList<Parcelable> statesRecycleView;
     private boolean selectedMode;
+    private String rootDir;
+    private ArrayList realFiles;
 
 
     public FileCore(MainActivity mainActivity) {
@@ -31,10 +38,12 @@ public class FileCore {
         this.activity = mainActivity;
         statesRecycleView = new LinkedList<>();
         dateFile = Calendar.getInstance();
+        realFiles = new ArrayList<>();
     }
 
     public String[] getListFilesCurrentDir() {
         File file = new File(currentDir.toString());
+
 
         return file.list();
     }
@@ -71,7 +80,7 @@ public class FileCore {
 
         if (list == null) {
             clearCurrentDir();
-            currentDir.append(Environment.getExternalStorageDirectory().getAbsolutePath());
+            currentDir.append(Environment.getExternalStorageDirectory().getAbsolutePath() + "/");
             list = getListFiles();
         }
         activity.getTextDir().setText(currentDir.toString());
@@ -81,15 +90,19 @@ public class FileCore {
                     getSize(listFile), getPermissions(listFile), getDate(listFile)));
         }
 
+        rootDir = currentDir.toString();
+
 
     }
 
 
     private void openDir(String directory, boolean isNotAppend) {
-        if (!isNotAppend)
+        if (!isNotAppend) {
             statesRecycleView.add(activity.getRecyclerView().getLayoutManager().onSaveInstanceState());
-
+            activity.getAdapter().saveData();
+        }
         activity.getRecyclerView().scrollToPosition(0);
+
 
         if (!directory.equals("/") && !isNotAppend) {
             currentDir.append(directory);
@@ -105,9 +118,12 @@ public class FileCore {
 
         ArrayList<File> list = getListFiles();
         if (list != null) {
-            for (File listFile : list) {
-                activity.getAdapter().addItem(new ModelFiles(listFile.getName(), listFile.isDirectory(),
-                        getSize(listFile), getPermissions(listFile), getDate(listFile)));
+
+            if (!activity.getAdapter().restoreData()) {
+                for (File listFile : list) {
+                    activity.getAdapter().addItem(new ModelFiles(listFile.getName(), listFile.isDirectory(),
+                            getSize(listFile), getPermissions(listFile), getDate(listFile)));
+                }
             }
 
             if (isNotAppend)
@@ -145,6 +161,8 @@ public class FileCore {
 
 
     public void backDir() {
+
+        activity.getAdapter().saveData();
 
         int startDeleteIndex = currentDir.length() - 1;
         while (true) {
@@ -239,11 +257,90 @@ public class FileCore {
 
     }
 
+    public String getRootDir() {
+        return rootDir;
+    }
+
     public boolean isSelectedMode() {
         return selectedMode;
     }
 
     public void startSelectedMode() {
         selectedMode = true;
+    }
+
+    private void showNotPermissionToast() {
+        Toast.makeText(activity, R.string.no_permission, Toast.LENGTH_SHORT).show();
+    }
+
+    private void calculateRealCountFiles(File[] files) {
+
+        for (int i = 0; i < files.length; i++) {
+            realFiles.add(files[i]);
+            if(files[i].isDirectory()) {
+                calculateRealCountFiles(files[i].listFiles());
+            }
+        }
+
+    }
+
+    public void renameFile(File fileRename, String which) {
+
+        try {
+            if (fileRename.renameTo(new File(currentDir + which))) {
+                refreshDir();
+            } else {
+                showNotPermissionToast();
+
+            }
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            showNotPermissionToast();
+
+        }
+
+    }
+
+    public void moveFile(File[] sources, boolean isCopy) {
+        //if (!dest.isDirectory()) throw new NoSuchElementException("dest is file");
+
+
+        for (int i = 0; i < sources.length; i++) {
+            InputStream is = null;
+            FileOutputStream os = null;
+
+
+            try {
+                File destFile = new File(currentDir.toString() + sources[i].getName());
+                destFile.createNewFile();
+
+                is = new FileInputStream(sources[i]);
+                os = new FileOutputStream(destFile);
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = is.read(buffer)) > 0) {
+                    os.write(buffer, 0, length);
+                }
+
+                is.close();
+                os.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+        if (!isCopy) deleteFiles(sources);
+        refreshDir();
+    }
+
+    public void deleteFiles(File[] files) {
+        for (int i = 0; i < files.length; i++) {
+            if (files[i].delete()) System.out.println("delete ok");
+        }
+
+        activity.getAdapter().deleteSelected();
+
     }
 }

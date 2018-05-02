@@ -9,4 +9,10 @@
     <string name="cancel">Отмена</string>
     <string name="elements">элементов</string>
     <string name="open_how">Открыть как</string>
+    <string name="what_do">Что сделать?</string>
+
+    <string name="no">Нет</string>
+    <string name="yes">Да</string>
+    <string name="rename">Переименовать</string>
+    <string name="no_permission">Нет разрешения!</string>
 </resources>

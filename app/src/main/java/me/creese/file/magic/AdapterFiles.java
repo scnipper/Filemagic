@@ -6,7 +6,10 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 
 import me.creese.file.magic.ui.FileCard;
 
@@ -17,14 +20,21 @@ import me.creese.file.magic.ui.FileCard;
 public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolder> {
 
 
-    private final ArrayList<ModelFiles> items;
+    private ArrayList<ModelFiles> items;
+    private ArrayList<File> savedFiles;
     private FileCore fileCore;
     private boolean slectedMode;
+    private HashMap<String,ArrayList<ModelFiles>> savedStates;
+    private boolean modeMoveCopy;
+    private boolean isSaveData;
 
     public AdapterFiles() {
         items = new ArrayList<>();
+        savedStates= new HashMap<>();
+        savedFiles = new ArrayList<>();
     }
     public void addItem(ModelFiles model) {
+        if(modeMoveCopy) model.setModeCopyAndMove(true);
         items.add(model);
     }
 
@@ -55,18 +65,26 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
         this.fileCore = fileCore;
     }
 
-    public void setSelectedMode(boolean mode) {
+    public void setSelectedMode() {
         if(!slectedMode) {
-            for (int i = 0; i < items.size(); i++) {
-                items.get(i).setSelectedMode(mode);
+            for (int i = 0; i < getItemCount(); i++) {
+                items.get(i).setSelectedMode(true);
             }
-            fileCore.getActivity().addIconsToToolbar();
+            fileCore.getActivity().addIconsToToolbar(MainActivity.GROUP_ACTIONS);
             slectedMode = true;
         }
     }
+    public void deselectAll() {
+        for (int i = 0; i < getItemCount(); i++) {
+            items.get(i).setSelect(false);
+            items.get(i).setSelectedMode(false);
+        }
+        slectedMode = false;
+    }
 
     public void deleteSelected() {
-        for (int i = 0; i < items.size(); i++) {
+        for (int i = 0; i < getItemCount(); i++) {
+            items.get(i).setSelectedMode(false);
             if(items.get(i).isSelect()) {
                 notifyItemRemoved(i);
                 items.remove(i);
@@ -74,9 +92,86 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
             }
         }
 
+        slectedMode = false;
+
 
     }
+    public void setModeMoveAndCopy(boolean mode) {
+        boolean isCallDataChanged = false;
+        for (int i = 0; i < getItemCount(); i++) {
+            items.get(i).setModeCopyAndMove(mode);
+            items.get(i).setSelectedMode(false);
+            if(!mode) {
+                if (items.get(i).isSelect()) {
+                    items.get(i).setSelect(false);
+                    isCallDataChanged = true;
+                }
+            }
+        }
+        if(!mode) slectedMode = false;
+        modeMoveCopy = mode;
+        isSaveData = mode;
+        if(!mode && isCallDataChanged) notifyDataSetChanged();
+    }
 
+    public void checkIsEmptySelect() {
+        for (int i = 0; i < items.size(); i++) {
+            if(items.get(i).isSelect()) return;
+        }
+        fileCore.getActivity().hideToolbarIcon(MainActivity.GROUP_ACTIONS);
+        for (int i = 0; i < items.size(); i++) {
+            items.get(i).setSelectedMode(false);
+        }
+        slectedMode = false;
+    }
+
+    public boolean restoreData() {
+        if(savedStates.size() > 0) {
+            ArrayList<ModelFiles> state = savedStates.get(fileCore.getCurrentDir());
+            if(state != null) {
+                items = (ArrayList<ModelFiles>) state.clone();
+                notifyDataSetChanged();
+                savedStates.clear();
+                isSaveData = true;
+                return true;
+            }
+
+        }
+        return false;
+    }
+
+    public void saveData() {
+        if(isSaveData) {
+            savedStates.put(fileCore.getCurrentDir().toString(), (ArrayList<ModelFiles>) items.clone());
+            isSaveData = false;
+
+        }
+    }
+
+    public File getSelectedFile() {
+        for (int i = 0; i < getItemCount(); i++) {
+            if(items.get(i).isSelect()) {
+                return new File(fileCore.getCurrentDir()+items.get(i).getName());
+            }
+        }
+        return null;
+    }
+
+    public void saveSelectedFiles() {
+        savedFiles.clear();
+        for (int i = 0; i < getItemCount(); i++) {
+            if(items.get(i).isSelect()) {
+                savedFiles.add(new File(fileCore.getCurrentDir()+items.get(i).getName()));
+            }
+        }
+    }
+    public File[] getSavedFiles() {
+        return savedFiles.toArray(new File[0]);
+    }
+
+    public HashMap<String, ArrayList<ModelFiles>> getSavedStates() {
+        return savedStates;
+    }
 
     public class RecycleHolder extends RecyclerView.ViewHolder {
 
