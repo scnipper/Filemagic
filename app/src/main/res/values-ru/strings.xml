@@ -15,4 +15,7 @@
     <string name="yes">Да</string>
     <string name="rename">Переименовать</string>
     <string name="no_permission">Нет разрешения!</string>
+    <string name="copy_elem_progress">Копирование элементов</string>
+    <string name="move_elem_progress">Перемещение элементов</string>
+    <string name="from">из</string>
 </resources>

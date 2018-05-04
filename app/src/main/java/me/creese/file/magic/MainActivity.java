@@ -1,8 +1,6 @@
 package me.creese.file.magic;
 
 import android.annotation.SuppressLint;
-import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -11,7 +9,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -20,7 +17,6 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -90,8 +86,6 @@ public class MainActivity extends AppCompatActivity {
     private void createViews() {
 
 
-
-
         toolbar = new Toolbar(this);
 
         toolbar.setTitle("");
@@ -100,7 +94,6 @@ public class MainActivity extends AppCompatActivity {
 
         toolbar.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 P.getPixelFromDP(40)));
-
 
 
         layout.addView(toolbar);
@@ -115,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
-
 
 
         navigationView.setLayoutParams(new DrawerLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -204,8 +196,6 @@ public class MainActivity extends AppCompatActivity {
         dialogCreate = builder.create();
 
 
-
-
         fab.setOnClickListener(l -> {
 
             dialogCreate.show();
@@ -287,12 +277,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addIconsToToolbar(int gId) {
-        toolbar.getMenu().setGroupVisible(gId,true);
+        toolbar.getMenu().setGroupVisible(gId, true);
 
     }
 
     public void hideToolbarIcon(int gId) {
-        toolbar.getMenu().setGroupVisible(gId,false);
+        toolbar.getMenu().setGroupVisible(gId, false);
     }
 
     @Override
@@ -306,20 +296,20 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(GROUP_ACTIONS,11,0,"")
+        menu.add(GROUP_ACTIONS, 11, 0, "")
                 .setIcon(R.drawable.ic_delete_white_18dp)
                 .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
-        menu.add(GROUP_ACTIONS,12,0,"")
+        menu.add(GROUP_ACTIONS, 12, 0, "")
                 .setIcon(R.drawable.ic_compare_arrows_white_18dp)
                 .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
-        menu.add(GROUP_ACTIONS,13,0,"")
+        menu.add(GROUP_ACTIONS, 13, 0, "")
                 .setIcon(R.drawable.ic_mode_edit_white_18dp)
                 .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
 
-        menu.add(GROUP_MOVE_COPY,21,0,"")
+        menu.add(GROUP_MOVE_COPY, 21, 0, "")
                 .setIcon(R.drawable.ic_close_white_18dp)
                 .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
-        menu.add(GROUP_MOVE_COPY,22,0,"")
+        menu.add(GROUP_MOVE_COPY, 22, 0, "")
                 .setIcon(R.drawable.ic_check_white_18dp)
                 .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
 
@@ -346,15 +336,16 @@ public class MainActivity extends AppCompatActivity {
 
                     Integer w = (Integer) which;
 
-                    if(w == 0) {
+                    if (w == 0) {
                         whatDoFile = R.string.copy_elem;
                     }
-                    if(w == 1) {
+                    if (w == 1) {
                         whatDoFile = R.string.move_elem;
                     }
                     hideToolbarIcon(GROUP_ACTIONS);
                     adapter.setModeMoveAndCopy(true);
                     adapter.saveSelectedFiles();
+                    fileCore.saveCurDir();
 
                     addIconsToToolbar(GROUP_MOVE_COPY);
                 });
@@ -372,7 +363,7 @@ public class MainActivity extends AppCompatActivity {
 
                     hideToolbarIcon(GROUP_ACTIONS);
                     adapter.deselectAll();
-                },name);
+                }, name);
                 break;
             case 21:
                 hideToolbarIcon(GROUP_MOVE_COPY);
@@ -383,19 +374,21 @@ public class MainActivity extends AppCompatActivity {
                 Dialogs.getInstanse().showDialogSureCopyMove(this, which -> {
                     Integer w = ((Integer) which);
 
-                    if(w == 1) {
+                    if (w == 1) {
                         // do it
 
-                        fileCore.moveFile(adapter.getSavedFiles(),true);
+                        fileCore.moveFile(adapter.getSavedFiles(), true);
 
                         adapter.getSavedStates().clear();
                     }
-                    if(w == 2) {
-                        fileCore.moveFile(adapter.getSavedFiles(),false);
+                    if (w == 2) {
+                        //fileCore.moveFile(adapter.getSavedFiles(), false);
                     }
+
+                    Dialogs.getInstanse().showTickDialog(this,w);
                     hideToolbarIcon(GROUP_MOVE_COPY);
                     adapter.setModeMoveAndCopy(false);
-                },whatDoFile);
+                }, whatDoFile);
 
 
         }
@@ -405,6 +398,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        Dialogs.getInstanse().destroy();
+        //Dialogs.getInstanse().destroy();
     }
 }

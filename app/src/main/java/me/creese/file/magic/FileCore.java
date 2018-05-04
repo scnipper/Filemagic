@@ -7,7 +7,6 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +29,8 @@ public class FileCore {
     private LinkedList<Parcelable> statesRecycleView;
     private boolean selectedMode;
     private String rootDir;
-    private ArrayList realFiles;
+    private ArrayList<File> realFiles;
+    private String saveDir;
 
 
     public FileCore(MainActivity mainActivity) {
@@ -136,17 +136,20 @@ public class FileCore {
     }
 
     private void refreshDir() {
-        Parcelable save = activity.getRecyclerView().getLayoutManager().onSaveInstanceState();
+        activity.runOnUiThread(() -> {
+            Parcelable save = activity.getRecyclerView().getLayoutManager().onSaveInstanceState();
 
-        activity.getAdapter().clear();
-        ArrayList<File> list = getListFiles();
+            activity.getAdapter().clear();
+            ArrayList<File> list = getListFiles();
 
-        for (File listFile : list) {
-            activity.getAdapter().addItem(new ModelFiles(listFile.getName(),
-                    listFile.isDirectory(), getSize(listFile), getPermissions(listFile), getDate(listFile)));
-        }
+            for (File listFile : list) {
+                activity.getAdapter().addItem(new ModelFiles(listFile.getName(),
+                        listFile.isDirectory(), getSize(listFile), getPermissions(listFile), getDate(listFile)));
+            }
 
-        activity.getRecyclerView().getLayoutManager().onRestoreInstanceState(save);
+            activity.getRecyclerView().getLayoutManager().onRestoreInstanceState(save);
+        });
+
 
 
     }
@@ -244,12 +247,13 @@ public class FileCore {
         return perm;
     }
 
+    @SuppressLint("DefaultLocale")
     private String getDate(File fileData) {
         long date = fileData.lastModified();
         if (date > 0) {
             dateFile.setTimeInMillis(date);
             return String.format("%02d.%02d.%4d", dateFile.get(Calendar.DAY_OF_MONTH),
-                    dateFile.get(Calendar.MONTH), dateFile.get(Calendar.YEAR));
+                    dateFile.get(Calendar.MONTH) + 1, dateFile.get(Calendar.YEAR));
         } else {
             return "--";
         }
@@ -277,8 +281,11 @@ public class FileCore {
 
         for (int i = 0; i < files.length; i++) {
             realFiles.add(files[i]);
-            if(files[i].isDirectory()) {
-                calculateRealCountFiles(files[i].listFiles());
+            //System.out.println(files[i]);
+            if (files[i].isDirectory()) {
+                File[] listFiles = files[i].listFiles();
+                if (listFiles != null)
+                    calculateRealCountFiles(listFiles);
             }
         }
 
@@ -304,43 +311,93 @@ public class FileCore {
     public void moveFile(File[] sources, boolean isCopy) {
         //if (!dest.isDirectory()) throw new NoSuchElementException("dest is file");
 
+        Thread threadMove = new Thread(() -> {
+            realFiles.clear();
+            calculateRealCountFiles(sources);
 
-        for (int i = 0; i < sources.length; i++) {
-            InputStream is = null;
-            FileOutputStream os = null;
 
+            int fullProgress = 0;
+            for (int i = 0;i<realFiles.size();i++) {
+                InputStream is = null;
+                FileOutputStream os = null;
 
-            try {
-                File destFile = new File(currentDir.toString() + sources[i].getName());
-                destFile.createNewFile();
+                String path = currentDir.toString() + realFiles.get(i).getAbsolutePath().replaceAll(saveDir, "");
 
-                is = new FileInputStream(sources[i]);
-                os = new FileOutputStream(destFile);
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((length = is.read(buffer)) > 0) {
-                    os.write(buffer, 0, length);
+                File destFile = new File(path);
+
+                fullProgress = (int) (((float)i /realFiles.size()) * 100);
+                int finalFullProgress1 = fullProgress;
+                int finalI = i;
+                activity.runOnUiThread(() ->
+                        Dialogs.getInstanse().tickFullProgress(finalFullProgress1,
+                                finalI +" "+activity.getString(R.string.from)+" "+realFiles.size()));
+
+                if (realFiles.get(i).isDirectory()) {
+                    destFile.mkdirs();
+
+                } else {
+                    try {
+                        destFile.createNewFile();
+                        is = new FileInputStream(realFiles.get(i));
+                        os = new FileOutputStream(destFile);
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        int isLength = is.available();
+                        int progLength = 0;
+                        while ((length = is.read(buffer)) > 0) {
+                            os.write(buffer);
+                            progLength += length;
+                            int fLength = (int) (((float)progLength/isLength)*100);
+                            //if(fLength > 100 ) fLength = 100;
+                            activity.runOnUiThread(() ->
+                                    Dialogs.getInstanse().tickFileProgress(fLength,path));
+
+                        }
+                        is.close();
+                        os.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
 
-                is.close();
-                os.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+
+
             }
 
-        }
-        if (!isCopy) deleteFiles(sources);
-        refreshDir();
+            activity.runOnUiThread(() ->
+                    Dialogs.getInstanse().tickFullProgress(100,
+                            realFiles.size() +" "+activity.getString(R.string.from)+" "+realFiles.size()));
+            if (!isCopy) deleteFiles(sources);
+            refreshDir();
+        });
+        threadMove.start();
+
     }
 
     public void deleteFiles(File[] files) {
+
+        Thread threadDelete = new Thread(()->{
+
+            delete(files);
+            activity.runOnUiThread(()-> activity.getAdapter().deleteSelected());
+
+        },"delete thread");
+
+        threadDelete.start();
+
+    }
+
+    private void delete(File[] files) {
         for (int i = 0; i < files.length; i++) {
-            if (files[i].delete()) System.out.println("delete ok");
+            if (files[i].isDirectory()) {
+                delete(files[i].listFiles());
+                files[i].delete();
+            }
+            else files[i].delete();
         }
+    }
 
-        activity.getAdapter().deleteSelected();
-
+    public void saveCurDir() {
+        saveDir = currentDir.toString();
     }
 }
