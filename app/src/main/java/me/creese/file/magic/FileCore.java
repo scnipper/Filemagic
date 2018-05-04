@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 
+import me.creese.file.magic.util.TypesFiles;
+
 /**
  * Created by scnipper on 24.04.2018.
  */
@@ -85,9 +87,12 @@ public class FileCore {
         }
         activity.getTextDir().setText(currentDir.toString());
         for (File listFile : list) {
-            activity.getAdapter().addItem(new ModelFiles(listFile.getName(),
+            ModelFiles modelFiles = new ModelFiles(listFile.getName(),
                     listFile.isDirectory(),
-                    getSize(listFile), getPermissions(listFile), getDate(listFile)));
+                    getSize(listFile), getPermissions(listFile), getDate(listFile));
+
+            checkType(listFile,modelFiles);
+            activity.getAdapter().addItem(modelFiles);
         }
 
         rootDir = currentDir.toString();
@@ -121,8 +126,11 @@ public class FileCore {
 
             if (!activity.getAdapter().restoreData()) {
                 for (File listFile : list) {
-                    activity.getAdapter().addItem(new ModelFiles(listFile.getName(), listFile.isDirectory(),
-                            getSize(listFile), getPermissions(listFile), getDate(listFile)));
+                    ModelFiles modelFiles  =new ModelFiles(listFile.getName(),
+                            listFile.isDirectory(), getSize(listFile), getPermissions(listFile), getDate(listFile));
+                    checkType(listFile, modelFiles);
+                    System.out.println(modelFiles.isLoadImagePreview());
+                    activity.getAdapter().addItem(modelFiles);
                 }
             }
 
@@ -143,13 +151,32 @@ public class FileCore {
             ArrayList<File> list = getListFiles();
 
             for (File listFile : list) {
-                activity.getAdapter().addItem(new ModelFiles(listFile.getName(),
-                        listFile.isDirectory(), getSize(listFile), getPermissions(listFile), getDate(listFile)));
+
+                ModelFiles modelFiles  =new ModelFiles(listFile.getName(),
+                        listFile.isDirectory(), getSize(listFile), getPermissions(listFile), getDate(listFile));
+                checkType(listFile, modelFiles);
+
+                activity.getAdapter().addItem(modelFiles);
             }
 
             activity.getRecyclerView().getLayoutManager().onRestoreInstanceState(save);
         });
 
+
+
+    }
+
+    private void checkType(File listFile, ModelFiles modelFiles) {
+        if(listFile.isDirectory()) return;
+
+        String name = listFile.getName();
+        name = name.toLowerCase();
+        for (int i = 0; i < TypesFiles.IMAGES.length; i++) {
+            if(name.endsWith(TypesFiles.IMAGES[i])) {
+                modelFiles.setLoadImagePreview(true);
+                break;
+            }
+        }
 
 
     }
@@ -281,7 +308,6 @@ public class FileCore {
 
         for (int i = 0; i < files.length; i++) {
             realFiles.add(files[i]);
-            //System.out.println(files[i]);
             if (files[i].isDirectory()) {
                 File[] listFiles = files[i].listFiles();
                 if (listFiles != null)
@@ -348,7 +374,6 @@ public class FileCore {
                             os.write(buffer);
                             progLength += length;
                             int fLength = (int) (((float)progLength/isLength)*100);
-                            //if(fLength > 100 ) fLength = 100;
                             activity.runOnUiThread(() ->
                                     Dialogs.getInstanse().tickFileProgress(fLength,path));
 

@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import java.io.File;
 
+import me.creese.file.magic.util.LoadImage;
 import me.creese.file.magic.views.DirView;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        LoadImage.setActivity(this);
         drawerLayout = new DrawerLayout(this);
         drawerLayout.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));

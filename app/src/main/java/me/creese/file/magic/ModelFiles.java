@@ -13,6 +13,7 @@ public class ModelFiles {
     private boolean selectedMode;
     private boolean select;
     private boolean modeCopyAndMove;
+    private boolean loadImagePreview;
 
     public ModelFiles(String name, boolean isDir, String size, String permissions, String date) {
         this.size = size;
@@ -64,5 +65,13 @@ public class ModelFiles {
 
     public boolean isModeCopyAndMove() {
         return modeCopyAndMove;
+    }
+
+    public void setLoadImagePreview(boolean loadImagePreview) {
+        this.loadImagePreview = loadImagePreview;
+    }
+
+    public boolean isLoadImagePreview() {
+        return loadImagePreview;
     }
 }

@@ -21,6 +21,7 @@ import me.creese.file.magic.ModelFiles;
 import me.creese.file.magic.OpenWithHandler;
 import me.creese.file.magic.P;
 import me.creese.file.magic.R;
+import me.creese.file.magic.util.LoadImage;
 
 /**
  * Created by scnipper on 25.04.2018.
@@ -255,5 +256,10 @@ public class FileCard extends CardView {
 
     public void setModel(ModelFiles model) {
         this.model = model;
+    }
+
+    public void loadPreviewImage() {
+
+        LoadImage.loadFull(fileCore.getCurrentDir()+model.getName(),icon);
     }
 }

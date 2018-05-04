@@ -198,6 +198,8 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
             fileCard.setDate(modelFiles.getDate());
 
             if(modelFiles.isSelect()) fileCard.setSelect();
+
+            if(modelFiles.isLoadImagePreview()) fileCard.loadPreviewImage();
             //fileCard.setSelectedMode(items.get(position).isSelectedMode());
 
 
