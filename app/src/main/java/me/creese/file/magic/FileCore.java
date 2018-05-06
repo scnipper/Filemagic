@@ -33,6 +33,7 @@ public class FileCore {
     private String rootDir;
     private ArrayList<File> realFiles;
     private String saveDir;
+    private boolean deleteFail;
 
 
     public FileCore(MainActivity mainActivity) {
@@ -91,7 +92,7 @@ public class FileCore {
                     listFile.isDirectory(),
                     getSize(listFile), getPermissions(listFile), getDate(listFile));
 
-            checkType(listFile,modelFiles);
+            checkType(listFile, modelFiles);
             activity.getAdapter().addItem(modelFiles);
         }
 
@@ -126,7 +127,7 @@ public class FileCore {
 
             if (!activity.getAdapter().restoreData()) {
                 for (File listFile : list) {
-                    ModelFiles modelFiles  =new ModelFiles(listFile.getName(),
+                    ModelFiles modelFiles = new ModelFiles(listFile.getName(),
                             listFile.isDirectory(), getSize(listFile), getPermissions(listFile), getDate(listFile));
                     checkType(listFile, modelFiles);
                     System.out.println(modelFiles.isLoadImagePreview());
@@ -152,7 +153,7 @@ public class FileCore {
 
             for (File listFile : list) {
 
-                ModelFiles modelFiles  =new ModelFiles(listFile.getName(),
+                ModelFiles modelFiles = new ModelFiles(listFile.getName(),
                         listFile.isDirectory(), getSize(listFile), getPermissions(listFile), getDate(listFile));
                 checkType(listFile, modelFiles);
 
@@ -163,16 +164,15 @@ public class FileCore {
         });
 
 
-
     }
 
     private void checkType(File listFile, ModelFiles modelFiles) {
-        if(listFile.isDirectory()) return;
+        if (listFile.isDirectory()) return;
 
         String name = listFile.getName();
         name = name.toLowerCase();
         for (int i = 0; i < TypesFiles.IMAGES.length; i++) {
-            if(name.endsWith(TypesFiles.IMAGES[i])) {
+            if (name.endsWith(TypesFiles.IMAGES[i])) {
                 modelFiles.setLoadImagePreview(true);
                 break;
             }
@@ -301,6 +301,7 @@ public class FileCore {
     }
 
     private void showNotPermissionToast() {
+
         Toast.makeText(activity, R.string.no_permission, Toast.LENGTH_SHORT).show();
     }
 
@@ -343,7 +344,7 @@ public class FileCore {
 
 
             int fullProgress = 0;
-            for (int i = 0;i<realFiles.size();i++) {
+            for (int i = 0; i < realFiles.size(); i++) {
                 InputStream is = null;
                 FileOutputStream os = null;
 
@@ -351,12 +352,12 @@ public class FileCore {
 
                 File destFile = new File(path);
 
-                fullProgress = (int) (((float)i /realFiles.size()) * 100);
+                fullProgress = (int) (((float) i / realFiles.size()) * 100);
                 int finalFullProgress1 = fullProgress;
                 int finalI = i;
                 activity.runOnUiThread(() ->
                         Dialogs.getInstanse().tickFullProgress(finalFullProgress1,
-                                finalI +" "+activity.getString(R.string.from)+" "+realFiles.size()));
+                                finalI + " " + activity.getString(R.string.from) + " " + realFiles.size()));
 
                 if (realFiles.get(i).isDirectory()) {
                     destFile.mkdirs();
@@ -373,9 +374,9 @@ public class FileCore {
                         while ((length = is.read(buffer)) > 0) {
                             os.write(buffer);
                             progLength += length;
-                            int fLength = (int) (((float)progLength/isLength)*100);
+                            int fLength = (int) (((float) progLength / isLength) * 100);
                             activity.runOnUiThread(() ->
-                                    Dialogs.getInstanse().tickFileProgress(fLength,path));
+                                    Dialogs.getInstanse().tickFileProgress(fLength, path));
 
                         }
                         is.close();
@@ -386,12 +387,11 @@ public class FileCore {
                 }
 
 
-
             }
 
             activity.runOnUiThread(() ->
                     Dialogs.getInstanse().tickFullProgress(100,
-                            realFiles.size() +" "+activity.getString(R.string.from)+" "+realFiles.size()));
+                            realFiles.size() + " " + activity.getString(R.string.from) + " " + realFiles.size()));
             if (!isCopy) deleteFiles(sources);
             refreshDir();
         });
@@ -401,24 +401,47 @@ public class FileCore {
 
     public void deleteFiles(File[] files) {
 
-        Thread threadDelete = new Thread(()->{
+        Thread threadDelete = new Thread(() -> {
 
             delete(files);
-            activity.runOnUiThread(()-> activity.getAdapter().deleteSelected());
+            if (!deleteFail)
+                activity.runOnUiThread(() -> activity.getAdapter().deleteSelected());
+            else {
+                deleteFail = false;
+                activity.getAdapter().deselectAll();
+                activity.getAdapter().notifyDataSetChanged();
+            }
 
-        },"delete thread");
+        }, "delete thread");
 
         threadDelete.start();
 
     }
 
     private void delete(File[] files) {
+
+        if(files == null) {
+            if(!deleteFail)
+            activity.runOnUiThread(this::showNotPermissionToast);
+            deleteFail = true;
+            return;
+        }
+
         for (int i = 0; i < files.length; i++) {
             if (files[i].isDirectory()) {
                 delete(files[i].listFiles());
-                files[i].delete();
+                if (!files[i].delete()) {
+                    if(!deleteFail)
+                    activity.runOnUiThread(this::showNotPermissionToast);
+                    deleteFail = true;
+                    return;
+                }
+            } else if (!files[i].delete()) {
+                if(!deleteFail)
+                activity.runOnUiThread(this::showNotPermissionToast);
+                deleteFail = true;
+                return;
             }
-            else files[i].delete();
         }
     }
 

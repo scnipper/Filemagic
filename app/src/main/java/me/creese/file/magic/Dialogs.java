@@ -77,23 +77,21 @@ public class Dialogs {
     public void showDialogRename(Context context, ClickOnItem clickOnItem, String name) {
         EditText renameText = new EditText(context);
 
-        if (dialogRename == null) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(R.string.rename)
+                .setPositiveButton(R.string.ok, (dialog, which) -> {
+                    clickOnItem.what(renameText.getText().toString());
+                    hideKeyBoard(context);
+
+                })
+                .setNegativeButton(R.string.cancel, (dialog, which) -> {
+                    hideKeyBoard(context);
+                });
 
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle(R.string.rename)
-                    .setPositiveButton(R.string.ok, (dialog, which) -> {
-                        clickOnItem.what(renameText.getText().toString());
-                        hideKeyBoard(context);
+        dialogRename = builder.create();
 
-                    })
-                    .setNegativeButton(R.string.cancel, (dialog, which) -> {
-                        hideKeyBoard(context);
-                    });
-
-
-            dialogRename = builder.create();
-        }
 
         renameText.setText(name);
         renameText.selectAll();
@@ -110,20 +108,19 @@ public class Dialogs {
     }
 
     public void showDeleteDialog(Context context, ClickOnItem clickOnItem) {
-        if (dialogDelete == null) {
 
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setPositiveButton(R.string.ok, (dialog, which) -> {
-                clickOnItem.what(which);
-                hideKeyBoard(context);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setPositiveButton(R.string.yes, (dialog, which) -> {
+            clickOnItem.what(which);
+            //hideKeyBoard(context);
 
-            })
-                    .setNegativeButton(R.string.cancel, null);
+        }).setTitle(R.string.is_delete_this)
+                .setNegativeButton(R.string.no, null);
 
 
-            dialogDelete = builder.create();
-        }
+        dialogDelete = builder.create();
+
         dialogDelete.show();
     }
 
@@ -193,8 +190,9 @@ public class Dialogs {
         dialogTick.show();
 
     }
-    public void tickFullProgress(int progFull,String nameFull) {
-        if(dialogTick != null) {
+
+    public void tickFullProgress(int progFull, String nameFull) {
+        if (dialogTick != null) {
 
             text1.setText(nameFull);
             progressFull.setProgress(progFull);
@@ -214,14 +212,13 @@ public class Dialogs {
             text2.setText(nameFile);
 
 
-
-
         }
     }
 
 
     public void destroy() {
         dialogCopyAndMove = null;
+        dialogRename = null;
     }
 
     public void showKeyboard(Context context) {

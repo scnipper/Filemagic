@@ -8,7 +8,9 @@ import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
 import android.support.v7.widget.CardView;
+import android.view.Gravity;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -40,6 +42,7 @@ public class FileCard extends CardView {
     private boolean select;
     //private boolean selectedMode;
     private ModelFiles model;
+    private CheckBox checkBox;
 
     public FileCard(@NonNull Context context, FileCore fileCore) {
         super(context);
@@ -57,6 +60,7 @@ public class FileCard extends CardView {
 
 
 
+
         LinearLayout layout = new LinearLayout(getContext());
         layout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
@@ -71,6 +75,17 @@ public class FileCard extends CardView {
                 ViewGroup.LayoutParams.WRAP_CONTENT));
 
         verLayout.setOrientation(LinearLayout.VERTICAL);
+
+        checkBox = new CheckBox(getContext());
+        checkBox.setVisibility(GONE);
+        checkBox.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        ((LayoutParams) checkBox.getLayoutParams()).gravity = Gravity.CENTER_VERTICAL|Gravity.END;
+        checkBox.setOnClickListener(l->{
+            if(model.isModeCopyAndMove()) return;
+            setSelect();
+        });
+
         textName = new TextView(getContext());
         textName.setTextColor(0xffCFD6ED);
 
@@ -90,6 +105,7 @@ public class FileCard extends CardView {
         horLayout.addView(textSize);
         horLayout.addView(textPerm);
         horLayout.addView(textDate);
+        frameLayout.addView(checkBox);
 
 
         verLayout.addView(textName);
@@ -216,16 +232,26 @@ public class FileCard extends CardView {
 
     public void setSelect() {
 
+
         if(select) {
             deselect();
             return;
         }
 
+
+        showCheckBox();
+
+        checkBox.setChecked(true);
         model.setSelect(true);
         select = true;
         frameLayout.setBackgroundColor(0xff26746B);
         fileCore.getActivity().getAdapter().setSelectedMode();
+        fileCore.getActivity().getAdapter().checkIsMoreOneSelected(true);
 
+
+    }
+    public void showCheckBox() {
+        checkBox.setVisibility(VISIBLE);
     }
 
     public void setTextSize(String textSize) {
@@ -242,6 +268,13 @@ public class FileCard extends CardView {
     public void clear() {
         frameLayout.setBackgroundColor(0);
         select = false;
+        if (model.isSelectedMode()) {
+            checkBox.setChecked(false);
+        }
+        else {
+            hideCheckBox();
+        }
+
     }
 
     private void deselect() {
@@ -250,6 +283,8 @@ public class FileCard extends CardView {
         select = false;
         model.setSelect(false);
         fileCore.getActivity().getAdapter().checkIsEmptySelect();
+        checkBox.setChecked(false);
+        fileCore.getActivity().getAdapter().checkIsMoreOneSelected(false);
     }
 
 
@@ -261,5 +296,10 @@ public class FileCard extends CardView {
     public void loadPreviewImage() {
 
         LoadImage.loadFull(fileCore.getCurrentDir()+model.getName(),icon);
+    }
+
+    public void hideCheckBox() {
+        checkBox.setChecked(false);
+        checkBox.setVisibility(GONE);
     }
 }

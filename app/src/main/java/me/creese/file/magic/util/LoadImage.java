@@ -98,9 +98,6 @@ public class LoadImage implements Runnable {
         Bitmap tmp = BitmapFactory.decodeFile(path, options);
 
         int newWidth = imageView.getWidth();
-        //if(tmp.getWidth() > newWidth) newWidth = tmp.getWidth();
-
-
         int newHeight = (int) (newWidth / ((float)tmp.getWidth()/tmp.getHeight()));
 
 

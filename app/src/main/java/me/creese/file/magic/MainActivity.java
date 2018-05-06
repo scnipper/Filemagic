@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
     private FrameLayout frameLayout;
     private Toolbar toolbar;
     private int whatDoFile;
+    private boolean hideRename;
+    private boolean isHideIconRename;
 
 
     @Override
@@ -287,6 +289,16 @@ public class MainActivity extends AppCompatActivity {
         toolbar.getMenu().setGroupVisible(gId, false);
     }
 
+    public void showIconRename() {
+        isHideIconRename = true;
+        invalidateOptionsMenu();
+    }
+    public void hideIconRename() {
+        hideRename = true;
+        isHideIconRename = false;
+        invalidateOptionsMenu();
+    }
+
     @Override
     public void onBackPressed() {
         if (fileCore.getCurrentDir().equals(fileCore.getRootDir())) super.onBackPressed();
@@ -298,6 +310,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+
         menu.add(GROUP_ACTIONS, 11, 0, "")
                 .setIcon(R.drawable.ic_delete_white_18dp)
                 .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
@@ -315,9 +328,16 @@ public class MainActivity extends AppCompatActivity {
                 .setIcon(R.drawable.ic_check_white_18dp)
                 .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
 
-
         hideToolbarIcon(GROUP_MOVE_COPY);
-        hideToolbarIcon(GROUP_ACTIONS);
+
+
+        if (!hideRename) {
+
+            hideToolbarIcon(GROUP_ACTIONS);
+        } else {
+            if(isHideIconRename) hideRename = true;
+            menu.findItem(13).setVisible(isHideIconRename);
+        }
 
         return true;
     }
@@ -329,9 +349,15 @@ public class MainActivity extends AppCompatActivity {
         switch (id) {
             case 11:
 
-                adapter.saveSelectedFiles();
-                fileCore.deleteFiles(adapter.getSavedFiles());
-                hideToolbarIcon(GROUP_ACTIONS);
+                Dialogs.getInstanse().showDeleteDialog(this, which -> {
+                    adapter.saveSelectedFiles();
+                    fileCore.deleteFiles(adapter.getSavedFiles());
+                    //adapter.deselectAll();
+                    //adapter.notifyDataSetChanged();
+                    hideToolbarIcon(GROUP_ACTIONS);
+                    textDir.hideCheckBox();
+                });
+
                 break;
             case 12:
                 Dialogs.getInstanse().showDialogCopyAndMove(this, which -> {
@@ -365,6 +391,8 @@ public class MainActivity extends AppCompatActivity {
 
                     hideToolbarIcon(GROUP_ACTIONS);
                     adapter.deselectAll();
+                    adapter.notifyDataSetChanged();
+                    textDir.hideCheckBox();
                 }, name);
                 break;
             case 21:
@@ -384,10 +412,11 @@ public class MainActivity extends AppCompatActivity {
                         adapter.getSavedStates().clear();
                     }
                     if (w == 2) {
-                        //fileCore.moveFile(adapter.getSavedFiles(), false);
+                        fileCore.moveFile(adapter.getSavedFiles(), false);
+                        adapter.getSavedStates().clear();
                     }
 
-                    Dialogs.getInstanse().showTickDialog(this,w);
+                    Dialogs.getInstanse().showTickDialog(this, w);
                     hideToolbarIcon(GROUP_MOVE_COPY);
                     adapter.setModeMoveAndCopy(false);
                 }, whatDoFile);
@@ -400,6 +429,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        //Dialogs.getInstanse().destroy();
+        Dialogs.getInstanse().destroy();
     }
 }
