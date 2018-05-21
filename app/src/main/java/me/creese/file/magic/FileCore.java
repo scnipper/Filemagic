@@ -1,8 +1,13 @@
 package me.creese.file.magic;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.pm.ResolveInfo;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Parcelable;
+import android.support.v4.content.FileProvider;
 import android.widget.Toast;
 
 import java.io.File;
@@ -12,8 +17,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 
+import me.creese.file.magic.util.Saves;
 import me.creese.file.magic.util.TypesFiles;
 
 /**
@@ -442,6 +450,44 @@ public class FileCore {
                 deleteFail = true;
                 return;
             }
+        }
+    }
+
+
+    public void openFile(String mime,String name) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+
+            Uri contentUri = FileProvider.getUriForFile(activity,
+                    activity.getApplicationContext().getPackageName() + ".provider",
+                    new File(currentDir + name));
+            intent.setDataAndTypeAndNormalize(contentUri, mime);
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } else {
+            Uri fileUri = Uri.fromFile(new File(currentDir + name));
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.setDataAndType(fileUri, mime);
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        }
+
+        String launchActivity = Saves.getInstanse().getPref.getString(mime,null);
+
+        if(launchActivity == null) {
+
+            List<ResolveInfo> pkgAppsList = activity.getPackageManager().queryIntentActivities(intent, 0);
+
+            for (ResolveInfo resolveInfo : pkgAppsList) {
+                System.out.println(resolveInfo);
+            }
+            Dialogs.getInstanse().showDialogListActivities(activity, pkgAppsList, intent);
+        }
+        else {
+
+            String[] launch = launchActivity.split("/",2);
+
+
+            intent.setClassName(launch[0],launch[1]);
+            activity.startActivity(intent);
         }
     }
 

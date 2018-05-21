@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -25,9 +26,11 @@ import android.widget.TextView;
 import java.io.File;
 
 import me.creese.file.magic.util.LoadImage;
+import me.creese.file.magic.util.Saves;
 import me.creese.file.magic.views.DirView;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
+import static android.view.MenuItem.SHOW_AS_ACTION_NEVER;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -56,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         LoadImage.setActivity(this);
+        Saves.init(this);
+
         drawerLayout = new DrawerLayout(this);
         drawerLayout.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
@@ -117,6 +122,8 @@ public class MainActivity extends AppCompatActivity {
         navigationView.setLayoutParams(new DrawerLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         ((DrawerLayout.LayoutParams) navigationView.getLayoutParams()).gravity = Gravity.START;
+        navigationView.inflateMenu(R.menu.activity_main2_drawer);
+
 
         drawerLayout.addView(navigationView);
         recyclerView = new RecyclerView(this);
@@ -214,36 +221,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showDialogOpenWith(OpenWithHandler handler) {
-        if (dialogOpenWith == null) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.open_how)
-                    .setItems(R.array.items_open_with, (dialog, which) -> {
 
-                        switch (which) {
-                            case 0:
-                                handler.what(OpenWithHandler.WhatOpenFile.TEXT);
-                                break;
-                            case 1:
-                                handler.what(OpenWithHandler.WhatOpenFile.AUDIO);
-                                break;
-                            case 2:
-                                handler.what(OpenWithHandler.WhatOpenFile.IMAGE);
-                                break;
-                            case 3:
-                                handler.what(OpenWithHandler.WhatOpenFile.VIDEO);
-                                break;
-                            case 4:
-                                handler.what(OpenWithHandler.WhatOpenFile.OTHER);
-                                break;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.open_how)
+                .setItems(R.array.items_open_with, (dialog, which) -> {
 
-                        }
+                    switch (which) {
+                        case 0:
+                            handler.what(OpenWithHandler.WhatOpenFile.TEXT);
+                            break;
+                        case 1:
+                            handler.what(OpenWithHandler.WhatOpenFile.AUDIO);
+                            break;
+                        case 2:
+                            handler.what(OpenWithHandler.WhatOpenFile.IMAGE);
+                            break;
+                        case 3:
+                            handler.what(OpenWithHandler.WhatOpenFile.VIDEO);
+                            break;
+                        case 4:
+                            handler.what(OpenWithHandler.WhatOpenFile.OTHER);
+                            break;
 
-
-                    });
+                    }
 
 
-            dialogOpenWith = builder.create();
-        }
+                });
+
+
+        dialogOpenWith = builder.create();
+
         dialogOpenWith.show();
     }
 
@@ -293,6 +300,7 @@ public class MainActivity extends AppCompatActivity {
         isHideIconRename = true;
         invalidateOptionsMenu();
     }
+
     public void hideIconRename() {
         hideRename = true;
         isHideIconRename = false;
@@ -301,11 +309,18 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (fileCore.getCurrentDir().equals(fileCore.getRootDir())) super.onBackPressed();
-        else {
-            hideToolbarIcon(GROUP_ACTIONS);
-            fileCore.backDir();
+
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            if (fileCore.getCurrentDir().equals(fileCore.getRootDir())) super.onBackPressed();
+            else {
+                hideToolbarIcon(GROUP_ACTIONS);
+                fileCore.backDir();
+            }
         }
+
+
     }
 
     @Override
@@ -320,6 +335,8 @@ public class MainActivity extends AppCompatActivity {
         menu.add(GROUP_ACTIONS, 13, 0, "")
                 .setIcon(R.drawable.ic_mode_edit_white_18dp)
                 .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
+        menu.add(GROUP_ACTIONS,14,0,R.string.open_how)
+                .setShowAsAction(SHOW_AS_ACTION_NEVER);
 
         menu.add(GROUP_MOVE_COPY, 21, 0, "")
                 .setIcon(R.drawable.ic_close_white_18dp)
@@ -331,11 +348,12 @@ public class MainActivity extends AppCompatActivity {
         hideToolbarIcon(GROUP_MOVE_COPY);
 
 
+
         if (!hideRename) {
 
             hideToolbarIcon(GROUP_ACTIONS);
         } else {
-            if(isHideIconRename) hideRename = true;
+            if (isHideIconRename) hideRename = true;
             menu.findItem(13).setVisible(isHideIconRename);
         }
 
@@ -394,6 +412,9 @@ public class MainActivity extends AppCompatActivity {
                     adapter.notifyDataSetChanged();
                     textDir.hideCheckBox();
                 }, name);
+                break;
+            case 14:
+                showDialogOpenWith(what -> fileCore.openFile(what.toString(),adapter.getSelectedFile().getName()));
                 break;
             case 21:
                 hideToolbarIcon(GROUP_MOVE_COPY);

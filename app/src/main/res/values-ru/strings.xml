@@ -19,4 +19,5 @@
     <string name="move_elem_progress">Перемещение элементов</string>
     <string name="from">из</string>
     <string name="is_delete_this">Удалить эти элементы?</string>
+    <string name="remember_choice">Запомнить этот выбор</string>
 </resources>

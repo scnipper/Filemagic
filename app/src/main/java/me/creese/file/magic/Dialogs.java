@@ -1,13 +1,22 @@
 package me.creese.file.magic;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ResolveInfo;
 import android.support.v7.app.AlertDialog;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
+
+import java.util.List;
+
+import me.creese.file.magic.views.ViewActivity;
 
 /**
  * Created by scnipper on 30.04.2018.
@@ -226,6 +235,62 @@ public class Dialogs {
         imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
 
 
+    }
+
+    public void showDialogListActivities(Context context, List<ResolveInfo> pkgAppsList, Intent intent) {
+
+
+        LinearLayout root = new LinearLayout(context);
+        root.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.setOrientation(LinearLayout.VERTICAL);
+
+        ScrollView scrollView = new ScrollView(context);
+        scrollView.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        LinearLayout linearLayout = new LinearLayout(context);
+        linearLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+        scrollView.addView(linearLayout);
+
+        root.addView(scrollView);
+
+        ((LinearLayout.LayoutParams) scrollView.getLayoutParams()).weight = 0.9f;
+
+        CheckBox checkBox = new CheckBox(context);
+        checkBox.setText(R.string.remember_choice);
+        root.addView(checkBox);
+
+        ((LinearLayout.LayoutParams) checkBox.getLayoutParams()).weight = 0.1f;
+
+
+
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(R.string.open_with)
+                .setNegativeButton(R.string.cancel, (dialog, which) -> {
+                    hideKeyBoard(context);
+                });
+
+
+        AlertDialog dialog = builder.create();
+
+
+        for (ResolveInfo resolveInfo : pkgAppsList) {
+            ViewActivity viewActivity = new ViewActivity(context,intent,resolveInfo,checkBox,dialog);
+            viewActivity.setIcon(resolveInfo.loadIcon(context.getPackageManager()));
+            viewActivity.setName(resolveInfo.loadLabel(context.getPackageManager()));
+            linearLayout.addView(viewActivity);
+
+
+        }
+
+        dialog.setView(root, P.getPixelFromDP(15), 0, P.getPixelFromDP(15), 0);
+
+
+        dialog.show();
     }
 
     public interface ClickOnItem {
