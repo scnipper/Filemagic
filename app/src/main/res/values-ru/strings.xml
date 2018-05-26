@@ -20,4 +20,23 @@
     <string name="from">из</string>
     <string name="is_delete_this">Удалить эти элементы?</string>
     <string name="remember_choice">Запомнить этот выбор</string>
+    <string name="open_with">Открыть с помощью...</string>
+    <string name="action_settings">Настройки</string>
+    <string name="move_elem">Переместить сюда?</string>
+    <string name="copy_elem">Копировать сюда?</string>
+    <string-array name="items_create">
+        <item>Файл</item>
+        <item>Папка</item>
+    </string-array>
+    <string-array name="items_move_copy">
+        <item>Скопировать</item>
+        <item>Переместить</item>
+    </string-array>
+    <string-array name="items_open_with">
+        <item>Текст</item>
+        <item>Аудио</item>
+        <item>Изображение</item>
+        <item>Видео</item>
+        <item>Другое</item>
+    </string-array>
 </resources>

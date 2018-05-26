@@ -239,7 +239,6 @@ public class Dialogs {
 
     public void showDialogListActivities(Context context, List<ResolveInfo> pkgAppsList, Intent intent) {
 
-
         LinearLayout root = new LinearLayout(context);
         root.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -263,9 +262,16 @@ public class Dialogs {
         checkBox.setText(R.string.remember_choice);
         root.addView(checkBox);
 
+
+        if (intent.getStringExtra("ext") == null) {
+            checkBox.setEnabled(false);
+        }
+        else if(intent.getBooleanExtra("how",false)){
+            checkBox.setChecked(true);
+        }
+
+
         ((LinearLayout.LayoutParams) checkBox.getLayoutParams()).weight = 0.1f;
-
-
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -279,7 +285,7 @@ public class Dialogs {
 
 
         for (ResolveInfo resolveInfo : pkgAppsList) {
-            ViewActivity viewActivity = new ViewActivity(context,intent,resolveInfo,checkBox,dialog);
+            ViewActivity viewActivity = new ViewActivity(context, intent, resolveInfo, checkBox, dialog);
             viewActivity.setIcon(resolveInfo.loadIcon(context.getPackageManager()));
             viewActivity.setName(resolveInfo.loadLabel(context.getPackageManager()));
             linearLayout.addView(viewActivity);

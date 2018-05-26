@@ -63,8 +63,13 @@ public class ViewActivity extends LinearLayout {
         setOnClickListener(l -> {
 
             if (checkBox.isChecked()) {
-                Saves.getInstanse().save.putString(intent.getType(),resolveInfo.activityInfo.packageName+"/"+resolveInfo.activityInfo.name);
-                Saves.getInstanse().save.apply();
+                Saves.getInstanse().save.putString(intent.getStringExtra("ext"),
+                        resolveInfo.activityInfo.packageName+"/"+resolveInfo.activityInfo.name).apply();
+            }
+            else {
+                if(intent.getBooleanExtra("how",false)){
+                    Saves.getInstanse().save.remove(intent.getStringExtra("ext")).apply();
+                }
             }
 
             intent.setClassName(resolveInfo.activityInfo.packageName,resolveInfo.activityInfo.name);

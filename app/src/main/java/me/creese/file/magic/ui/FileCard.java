@@ -1,15 +1,8 @@
 package me.creese.file.magic.ui;
 
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ResolveInfo;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.support.v4.content.FileProvider;
 import android.support.v7.widget.CardView;
-import android.util.ArraySet;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
@@ -19,18 +12,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-
-import me.creese.file.magic.Dialogs;
 import me.creese.file.magic.FileCore;
+import me.creese.file.magic.MainActivity;
 import me.creese.file.magic.ModelFiles;
-import me.creese.file.magic.OpenWithHandler;
 import me.creese.file.magic.P;
 import me.creese.file.magic.R;
 import me.creese.file.magic.util.LoadImage;
-import me.creese.file.magic.util.Saves;
 
 /**
  * Created by scnipper on 25.04.2018.
@@ -192,21 +179,20 @@ public class FileCard extends CardView {
             }
             else if(!model.isModeCopyAndMove()){
 
-                int indexBegin = textName.getText().toString().lastIndexOf('.')+1;
-                String mime = null;
-                if(indexBegin != -1) {
-                    String extension = textName.getText().toString().substring(indexBegin,textName.getText().toString().length());
-                    extension = extension.toLowerCase();
 
-                    mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-                }
+
+                String extension = fileCore.getExtension(textName.getText().toString());
+
+                String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
 
 
 
-                if(mime != null) fileCore.openFile(mime,model.getName());
+
+
+                if(extension != null) fileCore.openFile(mime,model.getName(),extension);
                 else {
                     fileCore.getActivity().showDialogOpenWith(what -> {
-                        fileCore.openFile(what.toString(),model.getName());
+                        fileCore.openFile(what.toString(),model.getName(), null);
                     });
                 }
 
@@ -245,7 +231,7 @@ public class FileCard extends CardView {
         select = true;
         frameLayout.setBackgroundColor(0xff26746B);
         fileCore.getActivity().getAdapter().setSelectedMode();
-        fileCore.getActivity().getAdapter().checkIsMoreOneSelected(true);
+        fileCore.getActivity().getAdapter().checkIsMoreOneSelected();
 
 
     }
@@ -283,7 +269,8 @@ public class FileCard extends CardView {
         model.setSelect(false);
         fileCore.getActivity().getAdapter().checkIsEmptySelect();
         checkBox.setChecked(false);
-        fileCore.getActivity().getAdapter().checkIsMoreOneSelected(false);
+        fileCore.getActivity().getAdapter().checkIsMoreOneSelected();
+
     }
 
 

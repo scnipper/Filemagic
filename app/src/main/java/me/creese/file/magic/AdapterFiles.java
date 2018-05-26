@@ -73,7 +73,7 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
             }
 
             fileCore.getActivity().addIconsToToolbar(MainActivity.GROUP_ACTIONS);
-
+            fileCore.getActivity().getFab().hide();
             fileCore.getActivity().getTextDir().showCheckBox();
 
             slectedMode = true;
@@ -87,6 +87,7 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
             items.get(i).setSelectedMode(false);
         }
         slectedMode = false;
+        fileCore.getActivity().getFab().show();
     }
 
     public void deleteSelected() {
@@ -194,20 +195,30 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
             items.get(i).setSelect(true);
         }
         notifyDataSetChanged();
+        checkIsMoreOneSelected();
     }
 
-    public void checkIsMoreOneSelected(boolean isFirst) {
+    public void checkIsMoreOneSelected() {
         int count = 0;
         for (int i = 0; i < getItemCount(); i++) {
             if(items.get(i).isSelect()) count++;
             if(count > 1) {
-                fileCore.getActivity().hideIconRename();
+               // fileCore.getActivity().hideIconRename();
+                fileCore.getActivity().hideToolbarIcon(MainActivity.GROUP_FILE_OPTIONS);
+                fileCore.getActivity().hideToolbarIcon(MainActivity.GROUP_ICON_RENAME);
                 return;
             }
         }
 
-        if(count == 1 && !isFirst) {
-            fileCore.getActivity().showIconRename();
+        if(count == 1) {
+            //fileCore.getActivity().showIconRename();
+            fileCore.getActivity().addIconsToToolbar(MainActivity.GROUP_ICON_RENAME);
+            if(getSelectedFile().isFile())
+            fileCore.getActivity().addIconsToToolbar(MainActivity.GROUP_FILE_OPTIONS);
+        }
+        else if(count == 0 ) {
+            fileCore.getActivity().hideToolbarIcon(MainActivity.GROUP_FILE_OPTIONS);
+            fileCore.getActivity().hideToolbarIcon(MainActivity.GROUP_ICON_RENAME);
         }
 
     }

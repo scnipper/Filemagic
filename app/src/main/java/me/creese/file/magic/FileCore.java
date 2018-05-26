@@ -96,6 +96,7 @@ public class FileCore {
         }
         activity.getTextDir().setText(currentDir.toString());
         for (File listFile : list) {
+
             ModelFiles modelFiles = new ModelFiles(listFile.getName(),
                     listFile.isDirectory(),
                     getSize(listFile), getPermissions(listFile), getDate(listFile));
@@ -135,10 +136,10 @@ public class FileCore {
 
             if (!activity.getAdapter().restoreData()) {
                 for (File listFile : list) {
+                    if(listFile.isHidden()) continue;
                     ModelFiles modelFiles = new ModelFiles(listFile.getName(),
                             listFile.isDirectory(), getSize(listFile), getPermissions(listFile), getDate(listFile));
                     checkType(listFile, modelFiles);
-                    System.out.println(modelFiles.isLoadImagePreview());
                     activity.getAdapter().addItem(modelFiles);
                 }
             }
@@ -161,6 +162,7 @@ public class FileCore {
 
             for (File listFile : list) {
 
+                if(listFile.isHidden()) continue;
                 ModelFiles modelFiles = new ModelFiles(listFile.getName(),
                         listFile.isDirectory(), getSize(listFile), getPermissions(listFile), getDate(listFile));
                 checkType(listFile, modelFiles);
@@ -454,7 +456,11 @@ public class FileCore {
     }
 
 
-    public void openFile(String mime,String name) {
+    public void openFile(String mime, String name, String extension) {
+        openFile(mime,name,extension,false);
+    }
+
+    public void openFile(String mime, String name, String extension,boolean isOpenWith) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
 
@@ -470,22 +476,36 @@ public class FileCore {
             intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
 
-        String launchActivity = Saves.getInstanse().getPref.getString(mime,null);
+        String launchActivity = Saves.getInstanse().getPref.getString(extension,null);
 
         if(launchActivity == null) {
 
             List<ResolveInfo> pkgAppsList = activity.getPackageManager().queryIntentActivities(intent, 0);
 
-            for (ResolveInfo resolveInfo : pkgAppsList) {
-                System.out.println(resolveInfo);
+            if(pkgAppsList.size() == 0) {
+                activity.showDialogOpenWith(what -> {
+                    openFile(what.toString(),name, extension);
+                });
+                return;
             }
+
+            /*for (ResolveInfo resolveInfo : pkgAppsList) {
+                System.out.println(resolveInfo);
+            }*/
+
+            if(isOpenWith) {
+                String ext = getExtension(name);
+                if(Saves.getInstanse().getPref.getString(ext,null) != null) {
+                    intent.putExtra("ext",ext);
+                    intent.putExtra("how",true);
+                }
+                if(ext != null) intent.putExtra("ext",ext);
+            }
+            else intent.putExtra("ext",extension);
             Dialogs.getInstanse().showDialogListActivities(activity, pkgAppsList, intent);
         }
         else {
-
             String[] launch = launchActivity.split("/",2);
-
-
             intent.setClassName(launch[0],launch[1]);
             activity.startActivity(intent);
         }
@@ -493,5 +513,14 @@ public class FileCore {
 
     public void saveCurDir() {
         saveDir = currentDir.toString();
+    }
+
+    public String getExtension(String name) {
+        int indexBegin = name.lastIndexOf('.')+1;
+        if(indexBegin > 0) {
+            String extension = name.substring(indexBegin, name.length());
+            return extension.toLowerCase();
+        }
+        else return null;
     }
 }

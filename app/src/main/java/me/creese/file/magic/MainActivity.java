@@ -1,8 +1,11 @@
 package me.creese.file.magic;
 
+import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -24,6 +27,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 
 import me.creese.file.magic.util.LoadImage;
 import me.creese.file.magic.util.Saves;
@@ -33,10 +37,12 @@ import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 import static android.view.MenuItem.SHOW_AS_ACTION_NEVER;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     public static final int GROUP_ACTIONS = 0;
     public static final int GROUP_MOVE_COPY = 1;
+    public static final int GROUP_FILE_OPTIONS = 2;
+    public static final int GROUP_ICON_RENAME = 3;
     private LinearLayout layout;
     private AdapterFiles adapter;
     private FileCore fileCore;
@@ -52,6 +58,9 @@ public class MainActivity extends AppCompatActivity {
     private int whatDoFile;
     private boolean hideRename;
     private boolean isHideIconRename;
+    private FloatingActionButton fab;
+    private float fabY;
+    private boolean isFbaAnim;
 
 
     @Override
@@ -60,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
         LoadImage.setActivity(this);
         Saves.init(this);
-
+        fabY = 0;
         drawerLayout = new DrawerLayout(this);
         drawerLayout.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
@@ -124,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
         ((DrawerLayout.LayoutParams) navigationView.getLayoutParams()).gravity = Gravity.START;
         navigationView.inflateMenu(R.menu.activity_main2_drawer);
 
+        navigationView.setNavigationItemSelectedListener(this);
 
         drawerLayout.addView(navigationView);
         recyclerView = new RecyclerView(this);
@@ -157,10 +167,31 @@ public class MainActivity extends AppCompatActivity {
         emptyFolder.addView(emptyText);
 
 
-        FloatingActionButton fab = new FloatingActionButton(this);
+        fab = new FloatingActionButton(this);
         fab.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         fab.setImageResource(R.drawable.ic_add_white_24dp);
+
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+
+                if (dy < 0) {
+
+                    fabShow();
+
+                } else if (dy > 0) {
+                    fabHide();
+                }
+            }
+        });
+
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         EditText nameElement = new EditText(this);
@@ -262,6 +293,65 @@ public class MainActivity extends AppCompatActivity {
         P.DENSITY = getResources().getDisplayMetrics().density;
     }
 
+    public void fabHide() {
+        if (!isFbaAnim) {
+            isFbaAnim = true;
+            fab.animate().translationY(200)
+                    .setDuration(150)
+                    .setListener(new Animator.AnimatorListener() {
+                        @Override
+                        public void onAnimationStart(Animator animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            isFbaAnim = false;
+                        }
+
+                        @Override
+                        public void onAnimationCancel(Animator animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animator animation) {
+
+                        }
+                    })
+                    .start();
+        }
+    }
+
+    public void fabShow() {
+        if (!isFbaAnim) {
+            isFbaAnim = true;
+            fab.animate().translationY(0)
+                    .setListener(new Animator.AnimatorListener() {
+                        @Override
+                        public void onAnimationStart(Animator animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            isFbaAnim = false;
+                        }
+
+                        @Override
+                        public void onAnimationCancel(Animator animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animator animation) {
+
+                        }
+                    })
+                    .setDuration(150).start();
+        }
+    }
+
     public AdapterFiles getAdapter() {
         return adapter;
     }
@@ -307,6 +397,11 @@ public class MainActivity extends AppCompatActivity {
         invalidateOptionsMenu();
     }
 
+    public FloatingActionButton getFab() {
+        return fab;
+    }
+
+
     @Override
     public void onBackPressed() {
 
@@ -332,10 +427,10 @@ public class MainActivity extends AppCompatActivity {
         menu.add(GROUP_ACTIONS, 12, 0, "")
                 .setIcon(R.drawable.ic_compare_arrows_white_18dp)
                 .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
-        menu.add(GROUP_ACTIONS, 13, 0, "")
+        menu.add(GROUP_ICON_RENAME, 13, 0, "")
                 .setIcon(R.drawable.ic_mode_edit_white_18dp)
                 .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
-        menu.add(GROUP_ACTIONS,14,0,R.string.open_how)
+        menu.add(GROUP_FILE_OPTIONS, 14, 0, R.string.open_how)
                 .setShowAsAction(SHOW_AS_ACTION_NEVER);
 
         menu.add(GROUP_MOVE_COPY, 21, 0, "")
@@ -346,16 +441,19 @@ public class MainActivity extends AppCompatActivity {
                 .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
 
         hideToolbarIcon(GROUP_MOVE_COPY);
+        hideToolbarIcon(GROUP_FILE_OPTIONS);
+        hideToolbarIcon(GROUP_ICON_RENAME);
+        hideToolbarIcon(GROUP_ACTIONS);
 
 
 
-        if (!hideRename) {
+        /*if (!hideRename) {
 
             hideToolbarIcon(GROUP_ACTIONS);
         } else {
             if (isHideIconRename) hideRename = true;
             menu.findItem(13).setVisible(isHideIconRename);
-        }
+        }*/
 
         return true;
     }
@@ -408,13 +506,14 @@ public class MainActivity extends AppCompatActivity {
                     fileCore.renameFile(fileRename, (String) which);
 
                     hideToolbarIcon(GROUP_ACTIONS);
+                    hideToolbarIcon(GROUP_ICON_RENAME);
                     adapter.deselectAll();
                     adapter.notifyDataSetChanged();
                     textDir.hideCheckBox();
                 }, name);
                 break;
             case 14:
-                showDialogOpenWith(what -> fileCore.openFile(what.toString(),adapter.getSelectedFile().getName()));
+                showDialogOpenWith(what -> fileCore.openFile(what.toString(), adapter.getSelectedFile().getName(), null, true));
                 break;
             case 21:
                 hideToolbarIcon(GROUP_MOVE_COPY);
@@ -451,5 +550,54 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Dialogs.getInstanse().destroy();
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.nav_home:
+                try {
+                    fileCore.clearCurrentDir();
+                    fileCore.openDir(Environment.getExternalStorageDirectory().getCanonicalPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case R.id.nav_pictures:
+                try {
+                    fileCore.clearCurrentDir();
+                    fileCore.openDir(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getCanonicalPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case R.id.nav_videos:
+                try {
+                    fileCore.clearCurrentDir();
+                    fileCore.openDir(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).getCanonicalPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case R.id.nav_music:
+                try {
+                    fileCore.clearCurrentDir();
+                    fileCore.openDir(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getCanonicalPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case R.id.nav_loadings:
+                try {
+                    fileCore.clearCurrentDir();
+                    fileCore.openDir(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getCanonicalPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+        }
+
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
     }
 }
