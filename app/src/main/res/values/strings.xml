@@ -43,4 +43,8 @@
     <string name="from">из</string>
     <string name="is_delete_this">Удалить эти элементы?</string>
     <string name="remember_choice">Remember this choise</string>
+    <string name="sort">Сортировать</string>
+    <string name="name">Имя</string>
+    <string name="type">Тип</string>
+    <string name="date">Дата</string>
 </resources>

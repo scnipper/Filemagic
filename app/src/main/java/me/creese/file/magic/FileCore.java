@@ -99,7 +99,8 @@ public class FileCore {
 
             ModelFiles modelFiles = new ModelFiles(listFile.getName(),
                     listFile.isDirectory(),
-                    getSize(listFile), getPermissions(listFile), getDate(listFile));
+                    getSize(listFile), getPermissions(listFile), getDate(listFile),listFile.lastModified(),
+                    getExtension(listFile.getName()));
 
             checkType(listFile, modelFiles);
             activity.getAdapter().addItem(modelFiles);
@@ -138,7 +139,8 @@ public class FileCore {
                 for (File listFile : list) {
                     if(listFile.isHidden()) continue;
                     ModelFiles modelFiles = new ModelFiles(listFile.getName(),
-                            listFile.isDirectory(), getSize(listFile), getPermissions(listFile), getDate(listFile));
+                            listFile.isDirectory(), getSize(listFile),
+                            getPermissions(listFile), getDate(listFile),listFile.lastModified(),getExtension(listFile.getName()));
                     checkType(listFile, modelFiles);
                     activity.getAdapter().addItem(modelFiles);
                 }
@@ -164,7 +166,8 @@ public class FileCore {
 
                 if(listFile.isHidden()) continue;
                 ModelFiles modelFiles = new ModelFiles(listFile.getName(),
-                        listFile.isDirectory(), getSize(listFile), getPermissions(listFile), getDate(listFile));
+                        listFile.isDirectory(), getSize(listFile),
+                        getPermissions(listFile), getDate(listFile),listFile.lastModified(),getExtension(listFile.getName()));
                 checkType(listFile, modelFiles);
 
                 activity.getAdapter().addItem(modelFiles);

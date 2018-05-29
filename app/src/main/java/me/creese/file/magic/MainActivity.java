@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static final int GROUP_MOVE_COPY = 1;
     public static final int GROUP_FILE_OPTIONS = 2;
     public static final int GROUP_ICON_RENAME = 3;
+    private static final int GROUP_FILE_OPTIONS_ALWAYS_SHOW = 4;
     private LinearLayout layout;
     private AdapterFiles adapter;
     private FileCore fileCore;
@@ -296,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void fabHide() {
         if (!isFbaAnim) {
             isFbaAnim = true;
-            fab.animate().translationY(200)
+            fab.animate().translationY(P.HEIGHT/4)
                     .setDuration(150)
                     .setListener(new Animator.AnimatorListener() {
                         @Override
@@ -430,7 +431,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         menu.add(GROUP_ICON_RENAME, 13, 0, "")
                 .setIcon(R.drawable.ic_mode_edit_white_18dp)
                 .setShowAsAction(SHOW_AS_ACTION_ALWAYS);
+
+
         menu.add(GROUP_FILE_OPTIONS, 14, 0, R.string.open_how)
+                .setShowAsAction(SHOW_AS_ACTION_NEVER);
+        menu.add(GROUP_FILE_OPTIONS_ALWAYS_SHOW, 15, 0, R.string.sort)
                 .setShowAsAction(SHOW_AS_ACTION_NEVER);
 
         menu.add(GROUP_MOVE_COPY, 21, 0, "")
@@ -471,6 +476,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     //adapter.deselectAll();
                     //adapter.notifyDataSetChanged();
                     hideToolbarIcon(GROUP_ACTIONS);
+                    hideToolbarIcon(GROUP_ICON_RENAME);
                     textDir.hideCheckBox();
                 });
 
@@ -513,7 +519,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }, name);
                 break;
             case 14:
-                showDialogOpenWith(what -> fileCore.openFile(what.toString(), adapter.getSelectedFile().getName(), null, true));
+                showDialogOpenWith(what -> fileCore.openFile(what.toString(),
+                        adapter.getSelectedFile().getName(), null, true));
+                break;
+            case 15:
+                Dialogs.getInstanse().showSortDialog(this);
                 break;
             case 21:
                 hideToolbarIcon(GROUP_MOVE_COPY);

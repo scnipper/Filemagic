@@ -4,11 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.support.v7.app.AlertDialog;
+import android.view.Gravity;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
@@ -49,16 +51,15 @@ public class Dialogs {
     public void showDialogCopyAndMove(Context context, ClickOnItem clickOnItem) {
 
 
-        if (dialogCopyAndMove == null) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle(R.string.what_do)
-                    .setItems(R.array.items_move_copy, (dialog, which) -> {
-                        clickOnItem.what(which);
-                    });
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(R.string.what_do)
+                .setItems(R.array.items_move_copy, (dialog, which) -> {
+                    clickOnItem.what(which);
+                });
 
 
-            dialogCopyAndMove = builder.create();
-        }
+        dialogCopyAndMove = builder.create();
+
         dialogCopyAndMove.show();
     }
 
@@ -265,8 +266,7 @@ public class Dialogs {
 
         if (intent.getStringExtra("ext") == null) {
             checkBox.setEnabled(false);
-        }
-        else if(intent.getBooleanExtra("how",false)){
+        } else if (intent.getBooleanExtra("how", false)) {
             checkBox.setChecked(true);
         }
 
@@ -297,6 +297,85 @@ public class Dialogs {
 
 
         dialog.show();
+    }
+
+    public void showSortDialog(MainActivity context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(R.string.sort);
+
+        LinearLayout root = new LinearLayout(context);
+
+        root.setOrientation(LinearLayout.HORIZONTAL);
+        root.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+
+
+        root.addView(genElement(context, R.string.name, id -> {
+            if (id == 1) {
+                context.getAdapter().sortItem(AdapterFiles.SortArrays.BY_NAME_HIGH);
+            } else {
+                context.getAdapter().sortItem(AdapterFiles.SortArrays.BY_NAME_LOW);
+            }
+
+            dialogDelete.dismiss();
+
+        }));
+        root.addView(genElement(context, R.string.type, id -> {
+            if (id == 1) {
+                context.getAdapter().sortItem(AdapterFiles.SortArrays.BY_TYPE_HIGH);
+            } else {
+                context.getAdapter().sortItem(AdapterFiles.SortArrays.BY_TYPE_LOW);
+            }
+            dialogDelete.dismiss();
+        }));
+        root.addView(genElement(context, R.string.date, id -> {
+            if (id == 1) {
+                context.getAdapter().sortItem(AdapterFiles.SortArrays.BY_DATE_HIGH);
+            } else {
+                context.getAdapter().sortItem(AdapterFiles.SortArrays.BY_DATE_LOW);
+            }
+            dialogDelete.dismiss();
+        }));
+
+
+        dialogDelete = builder.create();
+
+        dialogDelete.setView(root);
+        dialogDelete.show();
+    }
+
+    private LinearLayout genElement(Context context, int idTitle, OnClickSortBtn click) {
+        LinearLayout name = new LinearLayout(context);
+        name.setOrientation(LinearLayout.VERTICAL);
+
+        name.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        ((LinearLayout.LayoutParams) name.getLayoutParams()).weight = 0.3f;
+
+        TextView titleName = new TextView(context);
+
+        titleName.setText(idTitle);
+        titleName.setTextSize(18);
+        titleName.setGravity(Gravity.CENTER_HORIZONTAL);
+        ImageButton iconTop = new ImageButton(context);
+        iconTop.setImageResource(R.drawable.baseline_vertical_align_top_white_36);
+        iconTop.setBackground(null);
+        ImageButton iconBottom = new ImageButton(context);
+        iconBottom.setBackground(null);
+        iconBottom.setImageResource(R.drawable.baseline_vertical_align_bottom_white_36);
+
+        iconTop.setOnClickListener(l -> click.click(1));
+        iconBottom.setOnClickListener(l -> click.click(0));
+
+        name.addView(titleName);
+
+        name.addView(iconTop);
+        name.addView(iconBottom);
+        return name;
+    }
+
+    interface OnClickSortBtn {
+        void click(int id);
     }
 
     public interface ClickOnItem {

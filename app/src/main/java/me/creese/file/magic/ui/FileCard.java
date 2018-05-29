@@ -253,6 +253,7 @@ public class FileCard extends CardView {
     public void clear() {
         frameLayout.setBackgroundColor(0);
         select = false;
+
         if (model.isSelectedMode()) {
             checkBox.setChecked(false);
         }

@@ -8,9 +8,12 @@ import android.view.ViewGroup;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 
 import me.creese.file.magic.ui.FileCard;
+import me.creese.file.magic.util.SortFiles;
 
 /**
  * Created by scnipper on 25.04.2018.
@@ -52,6 +55,14 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
     @Override
     public int getItemCount() {
         return items.size();
+    }
+
+    public ArrayList<ModelFiles> getItems() {
+        return items;
+    }
+
+    public void setItems(ArrayList<ModelFiles> items) {
+        this.items = items;
     }
 
     public void clear() {
@@ -223,6 +234,39 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
 
     }
 
+    public void sortItem(SortArrays howSort) {
+        switch (howSort) {
+            case BY_NAME_HIGH:
+                SortFiles<String> sortFiles = new SortFiles<>();
+                sortFiles.sorting(true,this,"getName");
+
+                break;
+            case BY_NAME_LOW:
+                SortFiles<String> sortFiles1 = new SortFiles<>();
+                sortFiles1.sorting(false,this,"getName");
+                break;
+
+            case BY_DATE_HIGH:
+                SortFiles<Long> sortFiles2 = new SortFiles<>();
+                sortFiles2.sorting(true,this,"getLongDate");
+                break;
+            case BY_DATE_LOW:
+                SortFiles<Long> sortFiles3 = new SortFiles<>();
+                sortFiles3.sorting(false,this,"getLongDate");
+                break;
+            case BY_TYPE_LOW:
+                SortFiles<String> sortFiles4 = new SortFiles<>();
+                sortFiles4.sorting(false,this,"getExtension");
+                break;
+            case BY_TYPE_HIGH:
+                SortFiles<String> sortFiles5 = new SortFiles<>();
+                sortFiles5.sorting(true,this,"getExtension");
+        }
+    }
+
+
+
+
     public class RecycleHolder extends RecyclerView.ViewHolder {
 
         private final FileCard fileCard;
@@ -257,5 +301,14 @@ public class AdapterFiles extends RecyclerView.Adapter<AdapterFiles.RecycleHolde
 
 
         }
+    }
+
+    enum SortArrays {
+        BY_NAME_HIGH,
+        BY_NAME_LOW,
+        BY_TYPE_HIGH,
+        BY_TYPE_LOW,
+        BY_DATE_HIGH,
+        BY_DATE_LOW
     }
 }

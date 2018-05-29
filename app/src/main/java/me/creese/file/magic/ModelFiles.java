@@ -8,6 +8,8 @@ public class ModelFiles {
     private final String size;
     private final String permissons;
     private final String date;
+    private long longDate;
+    private String extension;
     private String name;
     private boolean isDir;
     private boolean selectedMode;
@@ -15,12 +17,25 @@ public class ModelFiles {
     private boolean modeCopyAndMove;
     private boolean loadImagePreview;
 
-    public ModelFiles(String name, boolean isDir, String size, String permissions, String date) {
+    public ModelFiles(String name, boolean isDir, String size,
+                      String permissions, String date, long longDate, String extension) {
         this.size = size;
         this.name = name;
         this.isDir = isDir;
         this.permissons = permissions;
         this.date = date;
+        this.longDate = longDate;
+        if(longDate == 0) this.longDate = (long) (Math.random() % 500);
+        this.extension = extension;
+
+        if(extension == null) this.extension = "";
+        if(isDir) {
+            this.extension = "0"+Math.random();
+        }
+    }
+
+    public String getExtension() {
+        return extension;
     }
 
     public String getDate() {
@@ -61,6 +76,10 @@ public class ModelFiles {
 
     public void setModeCopyAndMove(boolean modeCopyAndMove) {
         this.modeCopyAndMove = modeCopyAndMove;
+    }
+
+    public long getLongDate() {
+        return longDate;
     }
 
     public boolean isModeCopyAndMove() {
